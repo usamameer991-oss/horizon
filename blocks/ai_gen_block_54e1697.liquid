@@ -1,0 +1,573 @@
+{% doc %}
+  @prompt
+    Create a minimalistic and aesthetic Shopify section that displays different brand logos in a clean and responsive layout. The section should feature four brand logos modern animation effects for a premium feel. Ensure the section is fully responsive, adapting perfectly across desktop and mobile devices, while maintaining a minimalist and visually appealing design that highlights the brands elegantly, i want logos in row and text on top  add options to add logo size and also add option to add logo shadow turn off make it minimilistic, all okay i want to  show one only in center in mobile view like slide and web view is okay, enable different heading font for mobile view
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-brand-logos-{{ ai_gen_id }} {
+    padding: {{ block.settings.section_padding_top }}px 0 {{ block.settings.section_padding_bottom }}px;
+    background-color: {{ block.settings.background_color }};
+    overflow: hidden;
+  }
+
+  .ai-brand-logos-container-{{ ai_gen_id }} {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .ai-brand-logos-heading-{{ ai_gen_id }} {
+    text-align: center;
+    margin: 0 0 {{ block.settings.heading_margin_bottom }}px;
+    color: {{ block.settings.heading_color }};
+    font-size: {{ block.settings.heading_size }}px;
+    font-family: {{ block.settings.heading_font.family }}, {{ block.settings.heading_font.fallback_families }};
+    font-weight: {{ block.settings.heading_font.weight }};
+    font-style: {{ block.settings.heading_font.style }};
+  }
+
+  .ai-brand-logos-grid-{{ ai_gen_id }} {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: {{ block.settings.logo_spacing }}px;
+    align-items: center;
+    justify-items: center;
+  }
+
+  .ai-brand-logo-item-{{ ai_gen_id }} {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: {{ block.settings.logo_container_height }}px;
+    transition: all 0.3s ease;
+  }
+
+  .ai-brand-logo-item-{{ ai_gen_id }}:hover {
+    transform: translateY(-2px);
+  }
+
+  .ai-brand-logo-image-{{ ai_gen_id }} {
+    max-width: {{ block.settings.logo_size }}px;
+    max-height: {{ block.settings.logo_size }}px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    transition: all 0.3s ease;
+    {% if block.settings.logo_shadow %}
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    {% endif %}
+  }
+
+  .ai-brand-logo-placeholder-{{ ai_gen_id }} {
+    width: {{ block.settings.logo_size }}px;
+    height: {{ block.settings.logo_size }}px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    {% if block.settings.logo_shadow %}
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    {% endif %}
+  }
+
+  .ai-brand-logo-placeholder-{{ ai_gen_id }} svg {
+    width: 60%;
+    height: 60%;
+    opacity: 0.3;
+  }
+
+  /* Mobile slider styles - completely reworked */
+  .ai-brand-logos-mobile-wrapper-{{ ai_gen_id }} {
+    display: none;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .ai-brand-logos-mobile-slider-{{ ai_gen_id }} {
+    display: flex;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .ai-brand-logos-mobile-track-{{ ai_gen_id }} {
+    display: flex;
+    transition: transform 0.5s ease;
+    width: 100%;
+  }
+
+  .ai-brand-logos-mobile-slide-{{ ai_gen_id }} {
+    flex: 0 0 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: {{ block.settings.logo_container_height }}px;
+    padding: 0 20px;
+  }
+
+  .ai-brand-logos-mobile-dots-{{ ai_gen_id }} {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .ai-brand-logos-mobile-dot-{{ ai_gen_id }} {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ccc;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .ai-brand-logos-mobile-dot-{{ ai_gen_id }}.active {
+    background-color: {{ block.settings.heading_color }};
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .ai-brand-logos-mobile-slider-{{ ai_gen_id }}::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .ai-brand-logos-mobile-slider-{{ ai_gen_id }} {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  @media screen and (max-width: 768px) {
+    .ai-brand-logos-grid-{{ ai_gen_id }} {
+      display: none;
+    }
+
+    .ai-brand-logos-mobile-wrapper-{{ ai_gen_id }} {
+      display: block;
+    }
+
+    .ai-brand-logos-heading-{{ ai_gen_id }} {
+      font-size: {{ block.settings.mobile_heading_size }}px;
+      font-family: {{ block.settings.mobile_heading_font.family }}, {{ block.settings.mobile_heading_font.fallback_families }};
+      font-weight: {{ block.settings.mobile_heading_font.weight }};
+      font-style: {{ block.settings.mobile_heading_font.style }};
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .ai-brand-logos-container-{{ ai_gen_id }} {
+      padding: 0 15px;
+    }
+  }
+{% endstyle %}
+
+<brand-logos-{{ ai_gen_id }} class="ai-brand-logos-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-brand-logos-container-{{ ai_gen_id }}">
+    {% if block.settings.heading != blank %}
+      <h2 class="ai-brand-logos-heading-{{ ai_gen_id }}">{{ block.settings.heading }}</h2>
+    {% endif %}
+
+    <div class="ai-brand-logos-grid-{{ ai_gen_id }}">
+      {% for i in (1..4) %}
+        {% assign logo_key = 'logo_' | append: i %}
+        {% assign logo = block.settings[logo_key] %}
+        <div class="ai-brand-logo-item-{{ ai_gen_id }}">
+          {% if logo %}
+            <img
+              src="{{ logo | image_url: width: 400 }}"
+              alt="{{ logo.alt | escape }}"
+              class="ai-brand-logo-image-{{ ai_gen_id }}"
+              loading="lazy"
+              width="{{ block.settings.logo_size }}"
+              height="{{ block.settings.logo_size }}"
+            >
+          {% else %}
+            <div class="ai-brand-logo-placeholder-{{ ai_gen_id }}">
+              {{ 'image' | placeholder_svg_tag }}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="ai-brand-logos-mobile-wrapper-{{ ai_gen_id }}">
+      <div class="ai-brand-logos-mobile-slider-{{ ai_gen_id }}">
+        <div class="ai-brand-logos-mobile-track-{{ ai_gen_id }}" data-track>
+          {% for i in (1..4) %}
+            {% assign logo_key = 'logo_' | append: i %}
+            {% assign logo = block.settings[logo_key] %}
+            <div class="ai-brand-logos-mobile-slide-{{ ai_gen_id }}">
+              {% if logo %}
+                <img
+                  src="{{ logo | image_url: width: 400 }}"
+                  alt="{{ logo.alt | escape }}"
+                  class="ai-brand-logo-image-{{ ai_gen_id }}"
+                  loading="lazy"
+                  width="{{ block.settings.logo_size }}"
+                  height="{{ block.settings.logo_size }}"
+                >
+              {% else %}
+                <div class="ai-brand-logo-placeholder-{{ ai_gen_id }}">
+                  {{ 'image' | placeholder_svg_tag }}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="ai-brand-logos-mobile-dots-{{ ai_gen_id }}">
+        {% for i in (1..4) %}
+          <div 
+            class="ai-brand-logos-mobile-dot-{{ ai_gen_id }}{% if forloop.first %} active{% endif %}"
+            data-slide="{{ forloop.index0 }}"
+          ></div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</brand-logos-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class BrandLogos{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.currentSlide = 0;
+        this.totalSlides = 4;
+        this.autoSlideInterval = null;
+        this.isDragging = false;
+        this.startPos = 0;
+        this.currentTranslate = 0;
+        this.prevTranslate = 0;
+        this.animationID = null;
+      }
+
+      connectedCallback() {
+        this.track = this.querySelector('[data-track]');
+        this.dots = this.querySelectorAll('.ai-brand-logos-mobile-dot-{{ ai_gen_id }}');
+        this.slider = this.querySelector('.ai-brand-logos-mobile-slider-{{ ai_gen_id }}');
+        
+        if (this.track && this.dots.length > 0 && this.slider) {
+          this.setupEventListeners();
+          this.startAutoSlide();
+        }
+      }
+
+      disconnectedCallback() {
+        this.stopAutoSlide();
+        cancelAnimationFrame(this.animationID);
+      }
+
+      setupEventListeners() {
+        this.dots.forEach((dot, index) => {
+          dot.addEventListener('click', () => {
+            this.goToSlide(index);
+            this.resetAutoSlide();
+          });
+        });
+
+        // Touch events
+        this.track.addEventListener('touchstart', this.touchStart.bind(this));
+        this.track.addEventListener('touchmove', this.touchMove.bind(this));
+        this.track.addEventListener('touchend', this.touchEnd.bind(this));
+
+        // Mouse events for desktop testing
+        this.track.addEventListener('mousedown', this.touchStart.bind(this));
+        this.track.addEventListener('mousemove', this.touchMove.bind(this));
+        this.track.addEventListener('mouseup', this.touchEnd.bind(this));
+        this.track.addEventListener('mouseleave', this.touchEnd.bind(this));
+      }
+
+      getPositionX(event) {
+        return event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+      }
+
+      touchStart(e) {
+        this.startPos = this.getPositionX(e);
+        this.isDragging = true;
+        this.stopAutoSlide();
+        this.animationID = requestAnimationFrame(this.animation.bind(this));
+      }
+
+      touchMove(e) {
+        if (!this.isDragging) return;
+        const currentPosition = this.getPositionX(e);
+        this.currentTranslate = this.prevTranslate + currentPosition - this.startPos;
+      }
+
+      touchEnd() {
+        if (!this.isDragging) return;
+        this.isDragging = false;
+        cancelAnimationFrame(this.animationID);
+        
+        const movedBy = this.currentTranslate - this.prevTranslate;
+        if (movedBy < -50 && this.currentSlide < this.totalSlides - 1) {
+          this.nextSlide();
+        } else if (movedBy > 50 && this.currentSlide > 0) {
+          this.prevSlide();
+        } else {
+          this.goToSlide(this.currentSlide);
+        }
+        
+        this.startAutoSlide();
+      }
+
+      animation() {
+        if (!this.isDragging) return;
+        this.setSliderPosition();
+        this.animationID = requestAnimationFrame(this.animation.bind(this));
+      }
+
+      setSliderPosition() {
+        this.track.style.transform = `translateX(${this.currentTranslate}px)`;
+      }
+
+      goToSlide(index) {
+        this.currentSlide = index;
+        this.prevTranslate = -this.currentSlide * this.track.offsetWidth;
+        this.currentTranslate = this.prevTranslate;
+        this.setSliderPosition();
+        this.updateDots();
+      }
+
+      nextSlide() {
+        if (this.currentSlide < this.totalSlides - 1) {
+          this.goToSlide(this.currentSlide + 1);
+        } else {
+          this.goToSlide(0);
+        }
+      }
+
+      prevSlide() {
+        if (this.currentSlide > 0) {
+          this.goToSlide(this.currentSlide - 1);
+        } else {
+          this.goToSlide(this.totalSlides - 1);
+        }
+      }
+
+      updateDots() {
+        this.dots.forEach((dot, index) => {
+          dot.classList.toggle('active', index === this.currentSlide);
+        });
+      }
+
+      startAutoSlide() {
+        this.stopAutoSlide();
+        this.autoSlideInterval = setInterval(() => {
+          this.nextSlide();
+        }, 3000);
+      }
+
+      stopAutoSlide() {
+        if (this.autoSlideInterval) {
+          clearInterval(this.autoSlideInterval);
+          this.autoSlideInterval = null;
+        }
+      }
+
+      resetAutoSlide() {
+        this.stopAutoSlide();
+        this.startAutoSlide();
+      }
+    }
+
+    if (!customElements.get('brand-logos-{{ ai_gen_id }}')) {
+      customElements.define('brand-logos-{{ ai_gen_id }}', BrandLogos{{ ai_gen_id }});
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Brand logos",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Trusted by leading brands"
+    },
+    {
+      "type": "header",
+      "content": "Logo1"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo_1",
+      "label": "Logo image"
+    },
+    {
+      "type": "header",
+      "content": "Logo 2"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo_2",
+      "label": "Logo image"
+    },
+    {
+      "type": "header",
+      "content": "Logo 3"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo_3",
+      "label": "Logo image"
+    },
+    {
+      "type": "header",
+      "content": "Logo 4"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo_4",
+      "label": "Logo image"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "logo_size",
+      "min": 60,
+      "max": 200,
+      "step": 10,
+      "unit": "px",
+      "label": "Logo size",
+      "default": 120
+    },
+    {
+      "type": "range",
+      "id": "logo_spacing",
+      "min": 20,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "label": "Logo spacing",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "logo_container_height",
+      "min": 80,
+      "max": 200,
+      "step": 10,
+      "unit": "px",
+      "label": "Logo container height",
+      "default": 120
+    },
+    {
+      "type": "checkbox",
+      "id": "logo_shadow",
+      "label": "Enable logo shadow",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Desktop typography"
+    },
+    {
+      "type": "font_picker",
+      "id": "heading_font",
+      "label": "Heading font",
+      "default": "helvetica_n4"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "min": 16,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "label": "Heading size",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Mobile typography"
+    },
+    {
+      "type": "font_picker",
+      "id": "mobile_heading_font",
+      "label": "Mobile heading font",
+      "default": "helvetica_n4"
+    },
+    {
+      "type": "range",
+      "id": "mobile_heading_size",
+      "min": 14,
+      "max": 36,
+      "step": 2,
+      "unit": "px",
+      "label": "Mobile heading size",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "heading_margin_bottom",
+      "min": 20,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "label": "Heading bottom margin",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "section_padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "section_padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 60
+    }
+  ],
+  "presets": [
+    {
+      "name": "Brand logos"
+    }
+  ]
+}
+{% endschema %}

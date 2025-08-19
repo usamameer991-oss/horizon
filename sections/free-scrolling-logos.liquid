@@ -1,0 +1,481 @@
+{% schema %}
+{
+  "name": "Scrolling Logos Free",
+  "tag": "section",
+  "class": "onhow-scrolling-logos-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Logo Row Settings"
+    },
+    {
+      "type": "range",
+      "id": "row1_scroll_speed",
+      "min": 20,
+      "max": 200,
+      "step": 10,
+      "unit": "s",
+      "label": "Scroll Speed (lower = faster)",
+      "default": 60
+    },
+    {
+      "type": "header",
+      "content": "Layout Settings"
+    },
+    {
+      "type": "range",
+      "id": "logos_max_height",
+      "min": 30,
+      "max": 150,
+      "step": 5,
+      "unit": "px",
+      "label": "Logo Max Height",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "logo_spacing",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "Space Between Logos",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "logos_padding_top",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Logos Section Padding Top",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "logos_padding_bottom",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Logos Section Padding Bottom",
+      "default": 2
+    },
+    {
+      "type": "color",
+      "id": "section_background_color",
+      "label": "Section Background Color",
+      "default": "#ffffff"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "logo_image",
+          "label": "Logo Image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Scrolling Logos Free",
+      "blocks": [
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+{% comment %}
+<!-- Designed by OnHOW YouTube Channel - Anas El Medlaoui -->
+{% endcomment %}
+
+<style>
+.onhow-scrolling-logos-section {
+  width: 100%;
+  overflow: hidden;
+  padding-top: {{ section.settings.logos_padding_top }}px;
+  padding-bottom: {{ section.settings.logos_padding_bottom }}px;
+  position: relative;
+  background-color: {{ section.settings.section_background_color }};
+}
+
+.onhow-scrolling-logos-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  {% comment %} box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 -1px 3px rgba(0, 0, 0, 0.03); {% endcomment %}
+}
+
+.onhow-scrolling-logos-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
+  padding: 10px 0;
+  position: relative;
+  background-color: {{ section.settings.section_background_color }};
+}
+
+.onhow-scrolling-logos-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  visibility: hidden;
+  overflow: hidden;
+}
+
+.onhow-scrolling-logos-track.onhow-initialized {
+  opacity: 1;
+  visibility: visible;
+}
+
+.onhow-scrolling-logos-inner {
+  display: flex;
+  white-space: nowrap;
+  will-change: transform;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.onhow-scrolling-logos-inner--1 {
+  animation: onhow-scroll-1 linear infinite;
+}
+
+.onhow-scrolling-logos-inner--2 {
+  animation: onhow-scroll-2 linear infinite;
+}
+
+.onhow-logo-item {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 {{ section.settings.logo_spacing }}px;
+  position: relative;
+  z-index: 1;
+}
+
+.onhow-logo-item img {
+  max-height: {{ section.settings.logos_max_height }}px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+@keyframes onhow-scroll-1 {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+@keyframes onhow-scroll-2 {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+</style>
+
+<div class="onhow-scrolling-logos-section" data-scroll-speed="{{ section.settings.row1_scroll_speed }}">
+  <div class="onhow-scrolling-logos-container">
+    {% assign logos = section.blocks | where: "type", "logo" %}
+    {% if logos.size > 0 %}
+      <div class="onhow-scrolling-logos-row" style="height: {{ section.settings.logos_max_height | plus: 20 }}px;">
+        <div class="onhow-scrolling-logos-track">
+          <div class="onhow-scrolling-logos-inner onhow-scrolling-logos-inner--1">
+            {% for block in logos %}
+              {% if block.settings.logo_image != blank %}
+                <div class="onhow-logo-item" {{ block.shopify_attributes }}>
+                  <img 
+                    src="{{ block.settings.logo_image | img_url: 'master' }}" 
+                    alt="{{ block.settings.logo_image.alt | escape }}" 
+                    loading="eager" 
+                    width="{{ block.settings.logo_image.width }}"
+                    height="{{ block.settings.logo_image.height }}">
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+          
+          <div class="onhow-scrolling-logos-inner onhow-scrolling-logos-inner--2">
+            {% for block in logos %}
+              {% if block.settings.logo_image != blank %}
+                <div class="onhow-logo-item">
+                  <img 
+                    src="{{ block.settings.logo_image | img_url: 'master' }}" 
+                    alt="{{ block.settings.logo_image.alt | escape }}" 
+                    loading="eager"
+                    width="{{ block.settings.logo_image.width }}"
+                    height="{{ block.settings.logo_image.height }}">
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% comment %}
+<!-- Designed by OnHOW YouTube Channel - Anas El Medlaoui -->
+{% endcomment %}
+
+{% javascript %}
+document.addEventListener('DOMContentLoaded', function() {
+  window.onhowScrollingLogos = window.onhowScrollingLogos || {};
+  
+  window.onhowScrollingLogos.initializedSections = window.onhowScrollingLogos.initializedSections || {};
+  
+  window.onhowScrollingLogos.pendingTimeouts = window.onhowScrollingLogos.pendingTimeouts || {};
+  
+  window.onhowScrollingLogos.lastResize = window.onhowScrollingLogos.lastResize || 0;
+  
+  let hasInitialized = false;
+  
+  function initializeSections() {
+    if (hasInitialized) {
+      return;
+    }
+    
+    hasInitialized = true;
+    
+    for (let id in window.onhowScrollingLogos.pendingTimeouts) {
+      clearTimeout(window.onhowScrollingLogos.pendingTimeouts[id]);
+    }
+    
+    window.onhowScrollingLogos.pendingTimeouts = {};
+    
+    const sections = document.querySelectorAll('.onhow-scrolling-logos-section');
+    
+    sections.forEach((section) => {
+      const sectionId = section.id || `section-${Math.random().toString(36).substr(2, 9)}`;
+      
+      if (window.onhowScrollingLogos.initializedSections[sectionId]) {
+        return;
+      }
+      
+      window.onhowScrollingLogos.initializedSections[sectionId] = true;
+      
+      window.onhowScrollingLogos.pendingTimeouts[sectionId] = setTimeout(() => {
+        initSection(section);
+        delete window.onhowScrollingLogos.pendingTimeouts[sectionId];
+      }, 200);
+    });
+  }
+  
+  async function initSection(section) {
+    const track = section.querySelector('.onhow-scrolling-logos-track');
+    if (!track) return;
+    
+    track.classList.remove('onhow-initialized');
+    
+    await preloadImages(track);
+    
+    setupTrack(track);
+  }
+
+  function handleResize() {
+    const now = Date.now();
+    if (now - window.onhowScrollingLogos.lastResize < 1000) {
+      return;
+    }
+    
+    const sections = document.querySelectorAll('.onhow-scrolling-logos-section');
+    let shouldReinitialize = false;
+    
+    sections.forEach((section) => {
+      const track = section.querySelector('.onhow-scrolling-logos-track');
+      if (!track) return;
+      
+      const container = track.parentElement;
+      const currentWidth = container.offsetWidth;
+      const storedWidth = parseFloat(section.getAttribute('data-last-width') || '0');
+      
+      if (storedWidth === 0) {
+        section.setAttribute('data-last-width', currentWidth);
+        return;
+      }
+      
+      if (Math.abs(currentWidth - storedWidth) > 20) {
+        shouldReinitialize = true;
+        section.setAttribute('data-last-width', currentWidth);
+      }
+    });
+    
+    if (shouldReinitialize) {
+      window.onhowScrollingLogos.lastResize = now;
+      hasInitialized = false;
+      window.onhowScrollingLogos.initializedSections = {};
+      initializeSections();
+    }
+  }
+  
+  function preloadImages(track) {
+    return new Promise((resolve) => {
+      const images = track.querySelectorAll('img');
+      let loadedCount = 0;
+      const totalImages = images.length;
+      
+      if (totalImages === 0) {
+        resolve();
+        return;
+      }
+      
+      const checkComplete = () => {
+        loadedCount++;
+        if (loadedCount >= totalImages) {
+          resolve();
+        }
+      };
+      
+      images.forEach(img => {
+        if (img.complete) {
+          checkComplete();
+          return;
+        }
+        
+        const tempImg = new Image();
+        tempImg.onload = checkComplete;
+        tempImg.onerror = checkComplete;
+        tempImg.src = img.src;
+      });
+    });
+  }
+  
+  function setupTrack(track) {
+    const inner1 = track.querySelector('.onhow-scrolling-logos-inner--1');
+    const inner2 = track.querySelector('.onhow-scrolling-logos-inner--2');
+    
+    if (!inner1 || !inner2) return;
+    
+    const section = track.closest('.onhow-scrolling-logos-section');
+    const containerWidth = track.parentElement.offsetWidth;
+    section.setAttribute('data-last-width', containerWidth);
+    
+    inner1.style.animation = 'none';
+    inner2.style.animation = 'none';
+    void inner1.offsetWidth; 
+    void inner2.offsetWidth; 
+    
+    const originalItems = inner1.querySelectorAll('.onhow-logo-item');
+    if (originalItems.length === 0) return;
+    
+    const clonedItems = Array.from(originalItems).map(item => item.cloneNode(true));
+    
+    inner1.innerHTML = '';
+    inner2.innerHTML = '';
+    
+    clonedItems.forEach(item => {
+      inner1.appendChild(item.cloneNode(true));
+    });
+    
+    const measuredItems = inner1.querySelectorAll('.onhow-logo-item');
+    const originalWidth = Array.from(measuredItems).reduce((sum, item) => {
+      const style = window.getComputedStyle(item);
+      return sum + item.offsetWidth + 
+             parseFloat(style.marginLeft) + 
+             parseFloat(style.marginRight);
+    }, 0);
+    
+    const originalCount = measuredItems.length;
+    track.setAttribute('data-original-count', originalCount);
+    
+    const baseScrollSpeed = parseFloat(section.getAttribute('data-scroll-speed')) || 60;
+    
+    const desiredPxPerSec = originalWidth / baseScrollSpeed;
+    
+    const containerWidthForCalc = track.parentElement.offsetWidth;
+    
+    const minTargetWidth = containerWidthForCalc * 3;
+    
+    const duplicatesNeeded = Math.max(1, Math.ceil(minTargetWidth / originalWidth) - 1);
+    
+    for (let i = 0; i < duplicatesNeeded; i++) {
+      clonedItems.forEach(item => {
+        inner1.appendChild(item.cloneNode(true));
+        inner2.appendChild(item.cloneNode(true));
+      });
+    }
+    
+    clonedItems.forEach(item => {
+      inner2.appendChild(item.cloneNode(true));
+    });
+    
+    const finalWidth = originalWidth * (duplicatesNeeded + 1);
+    
+    inner1.style.width = `${finalWidth}px`;
+    inner2.style.width = `${finalWidth}px`;
+    
+    inner2.style.transform = `translateX(${finalWidth}px)`;
+    
+    const adjustedDuration = finalWidth / desiredPxPerSec;
+    
+    track.setAttribute('data-original-width', originalWidth.toFixed(2));
+    track.setAttribute('data-final-width', finalWidth.toFixed(2));
+    track.setAttribute('data-base-speed', baseScrollSpeed);
+    track.setAttribute('data-adjusted-duration', adjustedDuration.toFixed(2));
+    
+    setTimeout(() => {
+      inner1.style.animation = `onhow-scroll-1 ${adjustedDuration}s linear infinite`;
+      inner2.style.animation = `onhow-scroll-2 ${adjustedDuration}s linear infinite`;
+      
+      track.classList.add('onhow-initialized');
+    }, 50);
+  }
+  
+  function debounce(func, wait) {
+    let timeout;
+    return function() {
+      const context = this;
+      const args = arguments;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeSections);
+  } else {
+    initializeSections();
+  }
+  
+  window.addEventListener('load', initializeSections);
+  
+  window.addEventListener('resize', debounce(handleResize, 500));
+});
+{% endjavascript %}

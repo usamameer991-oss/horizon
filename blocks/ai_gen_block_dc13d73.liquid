@@ -1,0 +1,758 @@
+{% doc %}
+  @prompt
+    You want a Shopify section designed with a clean, premium full-page two-column layout. On the left side, there should be a fixed text block that stays frozen while the user scrolls. This block should include a small heading (e.g., “2025 Lookbook”), a bold main heading (such as “Cityscape Chic”), a short descriptive paragraph, and a customizable call-to-action button. All text elements—font size, spacing, alignment, and button styles—should be editable in the theme editor. On the right side, display large square product images that fill the column, with each new image revealed as the user scrolls down through the page, giving the sense that the entire page transitions to the next image. Smooth fade or slide transitions should animate the image changes. On the far left, add aesthetic navigation indicators in the form of pill-shaped dots that highlight the active image and allow manual navigation. The section should be fully responsive: on desktop, the text remains fixed on the left while scrolling transitions through square images on the right, and on mobile, the text stacks on top with the images displayed below, adapting to full width. Customization options should include the number of images, image uploads, animation type (fade or slide), autoplay toggle with timing, background color or transparency for the text block, and full button customization (text, link, and hover state). The overall design must stay minimalistic, modern, and luxury-inspired, with refined typography, balanced spacing, and visually striking high-resolution imagery., first the scroll is too long seconfdly the images are not showing on screen
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-lookbook-section-{{ ai_gen_id }} {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    background-color: {{ block.settings.section_background_color }};
+  }
+
+  .ai-lookbook-container-{{ ai_gen_id }} {
+    display: flex;
+    height: 100vh;
+    max-width: 100%;
+  }
+
+  .ai-lookbook-text-column-{{ ai_gen_id }} {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 50%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    background-color: {{ block.settings.text_background_color }};
+    {% if block.settings.text_background_color == 'rgba(0,0,0,0)' or block.settings.text_background_color == 'transparent' %}
+      backdrop-filter: blur(10px);
+    {% endif %}
+  }
+
+  .ai-lookbook-text-content-{{ ai_gen_id }} {
+    max-width: 400px;
+    padding: 40px;
+    text-align: {{ block.settings.text_alignment }};
+  }
+
+  .ai-lookbook-small-heading-{{ ai_gen_id }} {
+    font-size: {{ block.settings.small_heading_size }}px;
+    color: {{ block.settings.text_color }};
+    margin: 0 0 {{ block.settings.heading_spacing }}px 0;
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .ai-lookbook-main-heading-{{ ai_gen_id }} {
+    font-size: {{ block.settings.main_heading_size }}px;
+    color: {{ block.settings.text_color }};
+    margin: 0 0 {{ block.settings.heading_spacing }}px 0;
+    font-weight: 700;
+    line-height: 1.2;}
+
+  .ai-lookbook-description-{{ ai_gen_id }} {
+    font-size: {{ block.settings.description_size }}px;
+    color: {{ block.settings.text_color }};
+    margin: 0 0 {{ block.settings.button_spacing }}px 0;
+    line-height: 1.6;opacity: 0.9;
+  }
+
+  .ai-lookbook-button-{{ ai_gen_id }} {
+    display: inline-block;
+    padding: {{ block.settings.button_padding_vertical }}px {{ block.settings.button_padding_horizontal }}px;
+    background-color: {{ block.settings.button_background_color }};
+    color: {{ block.settings.button_text_color }};
+    text-decoration: none;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    font-size: {{ block.settings.button_font_size }}px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid {{ block.settings.button_border_color }};
+    text-transform: uppercase;
+    letter-spacing: 1px;}
+
+  .ai-lookbook-button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.button_hover_background_color }};
+    color: {{ block.settings.button_hover_text_color }};
+    border-color: {{ block.settings.button_hover_border_color }};
+    transform: translateY(-2px);
+  }
+
+  .ai-lookbook-image-column-{{ ai_gen_id }} {
+    position: relative;
+    left: 50%;
+    width: 50%;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .ai-lookbook-image-wrapper-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity {{ block.settings.transition_duration }}s ease-in-out;
+    z-index: 1;
+  }
+
+  .ai-lookbook-image-wrapper-{{ ai_gen_id }}.active {
+    opacity: 1;z-index: 2;
+  }
+
+  .ai-lookbook-image-wrapper-{{ ai_gen_id }}.slide-transition {
+    transform: translateX(100%);
+    transition: transform {{ block.settings.transition_duration }}s ease-in-out, opacity {{ block.settings.transition_duration }}s ease-in-out;
+  }
+
+  .ai-lookbook-image-wrapper-{{ ai_gen_id }}.slide-transition.active {
+    transform: translateX(0);
+  }
+
+  .ai-lookbook-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .ai-lookbook-image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .ai-lookbook-image-placeholder-{{ ai_gen_id }} svg {
+    width: 200px;
+    height: 200px;
+    opacity: 0.3;
+  }
+
+  .ai-lookbook-empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .ai-lookbook-navigation-{{ ai_gen_id }} {
+    position: fixed;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ai-lookbook-nav-dot-{{ ai_gen_id }} {
+    width: 8px;
+    height: 24px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;border: none;
+    padding: 0;
+  }
+
+  .ai-lookbook-nav-dot-{{ ai_gen_id }}.active {
+    background-color: {{ block.settings.navigation_active_color }};
+    height: 32px;
+  }
+
+  .ai-lookbook-nav-dot-{{ ai_gen_id }}:hover {
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+
+  .ai-lookbook-scroll-area-{{ ai_gen_id }} {
+    height: 300vh;
+    position: relative;
+    pointer-events: none;
+  }
+
+  @media screen and (max-width: 768px) {
+    .ai-lookbook-section-{{ ai_gen_id }} {
+      min-height: auto;
+    }
+
+    .ai-lookbook-container-{{ ai_gen_id }} {
+      flex-direction: column;
+      height: auto;
+    }
+
+    .ai-lookbook-text-column-{{ ai_gen_id }} {
+      position: static;
+      width: 100%;
+      height: auto;
+      min-height: 60vh;
+    }
+
+    .ai-lookbook-text-content-{{ ai_gen_id }} {
+      padding: 40px 20px;
+      max-width: 100%;
+    }
+
+    .ai-lookbook-image-column-{{ ai_gen_id }} {
+      position: static;
+      left: 0;
+      width: 100%;
+      height: auto;
+    }
+
+    .ai-lookbook-image-wrapper-{{ ai_gen_id }} {
+      position: static;
+      height: 80vh;
+      margin-bottom: 20px;opacity: 1;
+    }
+
+    .ai-lookbook-navigation-{{ ai_gen_id }} {
+      position: static;
+      flex-direction: row;
+      justify-content: center;
+      padding: 20px;transform: none;
+      left: auto;
+      top: auto;
+    }
+
+    .ai-lookbook-scroll-area-{{ ai_gen_id }} {
+      height: auto;
+    }
+
+    .ai-lookbook-nav-dot-{{ ai_gen_id }} {
+      width: 24px;
+      height: 8px;
+    }
+
+    .ai-lookbook-nav-dot-{{ ai_gen_id }}.active {
+      width: 32px;
+      height: 8px;
+    }
+  }
+{% endstyle %}<lookbook-section-{{ ai_gen_id }}
+  class="ai-lookbook-section-{{ ai_gen_id }}"
+  data-autoplay="{{ block.settings.autoplay_enabled }}"
+  data-autoplay-duration="{{ block.settings.autoplay_duration }}"
+  data-transition-type="{{ block.settings.transition_type }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-lookbook-container-{{ ai_gen_id }}">
+    <div class="ai-lookbook-text-column-{{ ai_gen_id }}">
+      <div class="ai-lookbook-text-content-{{ ai_gen_id }}">
+        {% if block.settings.small_heading != blank %}
+          <div class="ai-lookbook-small-heading-{{ ai_gen_id }}">
+            {{ block.settings.small_heading }}
+          </div>
+        {% endif %}
+
+        {% if block.settings.main_heading != blank %}
+          <h2 class="ai-lookbook-main-heading-{{ ai_gen_id }}">
+            {{ block.settings.main_heading }}
+          </h2>
+        {% endif %}
+
+        {% if block.settings.description != blank %}
+          <div class="ai-lookbook-description-{{ ai_gen_id }}">
+            {{ block.settings.description }}
+          </div>
+        {% endif %}
+
+        {% if block.settings.button_text != blank and block.settings.button_link != blank %}
+          <a
+            href="{{ block.settings.button_link }}"
+            class="ai-lookbook-button-{{ ai_gen_id }}"
+          >
+            {{ block.settings.button_text }}
+          </a>
+        {% endif %}
+      </div></div>
+
+    <div class="ai-lookbook-image-column-{{ ai_gen_id }}">
+      {% for i in (1..block.settings.image_count) %}
+        {% assign image_key = 'image_' | append: i %}
+        {% assign image = block.settings[image_key] %}
+        
+        <div
+          class="ai-lookbook-image-wrapper-{{ ai_gen_id }} {% if block.settings.transition_type == 'slide' %}slide-transition{% endif %} {% if forloop.first %}active{% endif %}"
+          data-index="{{ forloop.index0 }}"
+        >
+          {% if image %}
+            <img
+              src="{{ image | image_url: width: 1200}}"
+              alt="{{ image.alt | escape }}"
+              class="ai-lookbook-image-{{ ai_gen_id }}"
+              loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+              width="{{ image.width }}"
+              height="{{ image.height }}"
+            >
+          {% else %}
+            <div class="ai-lookbook-image-placeholder-{{ ai_gen_id }}">
+              {{ 'image' | placeholder_svg_tag }}<div class="ai-lookbook-empty-state-{{ ai_gen_id }}">
+                Add image {{ forloop.index }}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="ai-lookbook-navigation-{{ ai_gen_id }}">
+      {% for i in (1..block.settings.image_count) %}
+        <button
+          class="ai-lookbook-nav-dot-{{ ai_gen_id }} {% if forloop.first %}active{% endif %}"
+          data-index="{{ forloop.index0 }}"
+          aria-label="View image {{ forloop.index }}"
+        ></button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="ai-lookbook-scroll-area-{{ ai_gen_id }}"></div>
+</lookbook-section-{{ ai_gen_id }}><script>
+  (function() {
+    class LookbookSection{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.currentIndex = 0;
+        this.autoplayTimer = null;
+        this.lastScrollY = 0;
+        this.scrollDirection = 'down';
+      }
+
+      connectedCallback() {
+        this.imageWrappers = this.querySelectorAll('.ai-lookbook-image-wrapper-{{ ai_gen_id }}');
+        this.navDots = this.querySelectorAll('.ai-lookbook-nav-dot-{{ ai_gen_id }}');
+        this.scrollArea = this.querySelector('.ai-lookbook-scroll-area-{{ ai_gen_id }}');
+        
+        this.autoplayEnabled = this.dataset.autoplay === 'true';
+        this.autoplayDuration = parseInt(this.dataset.autoplayDuration) * 1000;
+        this.transitionType = this.dataset.transitionType;
+
+        this.setupEventListeners();
+        this.setupAutoplay();
+        this.setupScrollTrigger();
+      }
+
+      setupEventListeners() {
+        this.navDots.forEach((dot, index) => {
+          dot.addEventListener('click', () => {
+            this.goToSlide(index);
+            this.resetAutoplay();
+          });
+        });
+
+        window.addEventListener('resize', () => {
+          this.setupScrollTrigger();
+        });
+      }
+
+      setupScrollTrigger() {
+        if (window.innerWidth <= 768) return;
+
+        let ticking = false;
+
+        const updateOnScroll = () => {
+          const rect = this.getBoundingClientRect();
+          const isInView = rect.top <=0 && rect.bottom >= window.innerHeight;
+          
+          if (isInView) {
+            const scrollProgress = Math.abs(rect.top) / (rect.height - window.innerHeight);
+            const clampedProgress = Math.max(0, Math.min(1, scrollProgress));
+            const targetIndex = Math.floor(clampedProgress * (this.imageWrappers.length - 1));
+            
+            if (targetIndex !== this.currentIndex) {
+              this.goToSlide(targetIndex);}
+          }
+          
+          ticking = false;
+        };
+
+        const onScroll = () => {
+          if (!ticking) {
+            requestAnimationFrame(updateOnScroll);
+            ticking = true;
+          }
+        };
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+      }
+
+      setupAutoplay() {
+        if (this.autoplayEnabled && window.innerWidth > 768) {
+          this.startAutoplay();
+        }
+      }
+
+      startAutoplay() {
+        this.autoplayTimer = setInterval(() => {
+          const nextIndex = (this.currentIndex + 1) % this.imageWrappers.length;
+          this.goToSlide(nextIndex);
+        }, this.autoplayDuration);
+      }
+
+      resetAutoplay() {
+        if (this.autoplayTimer) {
+          clearInterval(this.autoplayTimer);
+          if (this.autoplayEnabled && window.innerWidth > 768) {
+            this.startAutoplay();
+          }
+        }
+      }
+
+      goToSlide(index) {
+        if (index === this.currentIndex || index < 0 || index >= this.imageWrappers.length) return;
+
+        this.imageWrappers[this.currentIndex].classList.remove('active');
+        this.navDots[this.currentIndex].classList.remove('active');
+
+        this.currentIndex = index;
+
+        this.imageWrappers[this.currentIndex].classList.add('active');
+        this.navDots[this.currentIndex].classList.add('active');
+      }
+
+      disconnectedCallback() {
+        if (this.autoplayTimer) {
+          clearInterval(this.autoplayTimer);
+        }
+      }
+    }
+
+    customElements.define('lookbook-section-{{ ai_gen_id }}', LookbookSection{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Lookbook section",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "small_heading",
+      "label": "Small heading",
+      "default": "2025Lookbook"
+    },
+    {
+      "type": "text",
+      "id": "main_heading",
+      "label": "Main heading",
+      "default": "Cityscape Chic"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Discover our latest collection inspired by urban sophistication and modern elegance."
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Shop Collection"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Images"
+    },
+    {
+      "type": "range",
+      "id": "image_count",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "label": "Number of images",
+      "default": 4
+    },
+    {
+      "type": "image_picker",
+      "id": "image_1",
+      "label": "Image 1"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_2",
+      "label": "Image 2"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_3",
+      "label": "Image 3"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_4",
+      "label": "Image 4"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_5",
+      "label": "Image 5"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_6",
+      "label": "Image 6"
+    },
+    {
+      "type": "header",
+      "content": "Animation"
+    },
+    {
+      "type": "select",
+      "id": "transition_type",
+      "label": "Transition type",
+      "options": [
+        {
+          "value": "fade",
+          "label": "Fade"
+        },
+        {
+          "value": "slide",
+          "label": "Slide"
+        }
+      ],
+      "default": "fade"
+    },
+    {
+      "type": "range",
+      "id": "transition_duration",
+      "min": 0.3,
+      "max": 2.0,
+      "step": 0.1,
+      "unit": "s",
+      "label": "Transition duration",
+      "default": 0.8
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay_enabled",
+      "label": "Enable autoplay",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_duration",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "label": "Autoplay duration",
+      "default": 5
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "section_background_color",
+      "label": "Section background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_background_color",
+      "label": "Text area background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "navigation_active_color",
+      "label": "Navigation active color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "small_heading_size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Small heading size",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "main_heading_size",
+      "min": 24,
+      "max": 72,
+      "step": 2,
+      "unit": "px",
+      "label": "Main heading size",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "description_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Description size",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "heading_spacing",
+      "min": 10,
+      "max": 50,
+      "step": 2,
+      "unit": "px",
+      "label": "Heading spacing",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "button_spacing",
+      "min": 20,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Button spacing",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Button style"
+    },
+    {
+      "type": "range",
+      "id": "button_font_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Font size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "button_padding_vertical",
+      "min": 8,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "label": "Vertical padding",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "button_padding_horizontal",
+      "min": 16,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "label": "Horizontal padding",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 4
+    },
+    {
+      "type": "color",
+      "id": "button_background_color",
+      "label": "Background color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_border_color",
+      "label": "Border color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_background_color",
+      "label": "Hover background color",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_text_color",
+      "label": "Hover text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_border_color",
+      "label": "Hover border color",
+      "default": "#333333"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Lookbook section"
+    }
+  ]
+}
+{% endschema %}

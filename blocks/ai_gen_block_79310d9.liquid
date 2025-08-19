@@ -1,0 +1,1197 @@
+{% doc %}
+  @prompt
+    Create a modern, minimalistic Shopify promotion section split into two parts. The first part should be a square block displaying a product image with customizable overlay text (heading, subheading, and button) and smooth hover effects like zoom or fade. The second part, placed beside it with a small gap, should be a horizontal rectangle block featuring a promotional message with animated text that loads from zero up to the discount percentage (e.g., 0% → 30% OFF). The button in both blocks should have fully editable text, links, colors, and hover effects. Include theme editor controls for image selection, text alignment, font size, spacing, background color, and animation speed. On desktop, the layout should appear as side-by-side blocks (square + rectangle), while on mobile they should stack vertically with both adapting to square proportions for a clean look. Ensure the section is lightweight, responsive, and optimized for a premium, luxury feel. make it minimilitic, i want second sectiion to have also add image option and also write recommended image resolution and also full customisation for section rectangle square and overlay also and different animations for loading discount and also speed adjustment features, no no i want secoond image as background image and all text and proomtin disocount over it, add button positon adjustment and also the second button becomes full screen when i make the text left align make it on left and alos the separate text adjustment of percent off i want to adjust text of percent and of
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-promo-section-{{ ai_gen_id }} {
+    display: flex;
+    gap: {{ block.settings.gap_size }}px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .ai-promo-block-{{ ai_gen_id }} {
+    position: relative;
+    overflow: hidden;
+    border-radius: {{ block.settings.border_radius }}px;
+    transition: all 0.3s ease;
+  }
+
+  .ai-promo-image-block-{{ ai_gen_id }} {
+    flex: 1;
+    aspect-ratio: 1;
+    min-height: 300px;
+    background-color: {{ block.settings.image_block_bg_color }};
+  }
+
+  .ai-promo-text-block-{{ ai_gen_id }} {
+    flex: 1.5;
+    aspect-ratio: 1.5;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: {{ block.settings.text_block_padding }}px;
+    background-color: {{ block.settings.promo_block_bg_color }};
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    {% if block.settings.promo_image %}
+      background-image: url('{{ block.settings.promo_image | image_url: width: 1200}}');
+    {% endif %}
+  }
+
+  .ai-promo-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform {{ block.settings.animation_speed }}ms ease;
+  }
+
+  .ai-promo-image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f8f8f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .ai-promo-image-placeholder-{{ ai_gen_id }} svg {
+    width: 60%;
+    height: 60%;
+    opacity: 0.3;
+  }
+
+  .ai-promo-text-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f8f8f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;}
+
+  .ai-promo-text-placeholder-{{ ai_gen_id }} svg {
+    width: 60%;
+    height: 60%;
+    opacity: 0.3;
+  }
+
+  .ai-promo-empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px;
+    color: #999;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .ai-promo-overlay-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      135deg,
+      {{ block.settings.overlay_color_1 }},
+      {{ block.settings.overlay_color_2 }}
+    );
+    opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};
+    transition: opacity {{ block.settings.animation_speed }}ms ease;
+  }
+
+  .ai-promo-text-overlay-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      {{ block.settings.promo_overlay_direction }}deg,
+      {{ block.settings.promo_overlay_color_1 }},
+      {{ block.settings.promo_overlay_color_2 }}
+    );
+    opacity: {{ block.settings.promo_overlay_opacity | divided_by: 100.0 }};
+    transition: opacity {{ block.settings.promo_animation_speed }}ms ease;
+  }
+
+  .ai-promo-content-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: {{ block.settings.button_vertical_position }};
+    align-items: {{ block.settings.text_alignment }};
+    padding: {{ block.settings.content_padding }}px;
+    text-align: {{ block.settings.text_alignment }};
+    z-index: 2;
+  }
+
+  .ai-promo-text-content-{{ ai_gen_id }} {
+    text-align: {{ block.settings.promo_text_alignment }};
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: {{ block.settings.promo_text_alignment }};justify-content: {{ block.settings.promo_button_vertical_position }};
+    width: 100%;
+    height: 100%;
+  }
+
+  .ai-promo-heading-{{ ai_gen_id }} {
+    font-size: {{ block.settings.heading_size }}px;
+    font-weight: 600;
+    color: {{ block.settings.text_color }};
+    margin: 0 0 {{ block.settings.text_spacing }}px 0;
+    line-height: 1.2;
+  }
+
+  .ai-promo-subheading-{{ ai_gen_id }} {
+    font-size: {{ block.settings.subheading_size }}px;
+    color: {{ block.settings.text_color }};
+    margin: 0 0 {{ block.settings.text_spacing }}px 0;
+    opacity: 0.9;
+    line-height: 1.4;
+  }
+
+  .ai-promo-button-{{ ai_gen_id }} {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: {{ block.settings.button_padding_vertical }}px {{ block.settings.button_padding_horizontal }}px;
+    background-color: {{ block.settings.button_color }};
+    color: {{ block.settings.button_text_color }};
+    text-decoration: none;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    font-size: {{ block.settings.button_font_size }}px;
+    font-weight: 500;
+    transition: all {{ block.settings.animation_speed }}ms ease;
+    border: none;
+    cursor: pointer;
+    margin-top: {{ block.settings.text_spacing }}px;
+    width: fit-content;
+  }
+
+  .ai-promo-button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.button_hover_color }};
+    color: {{ block.settings.button_hover_text_color }};transform: translateY(-2px);
+  }
+
+  .ai-promo-discount-{{ ai_gen_id }} {
+    font-size: {{ block.settings.discount_size }}px;
+    font-weight: 700;
+    color: {{ block.settings.discount_color }};
+    margin: 0 0 {{ block.settings.promo_text_spacing }}px 0;
+    line-height: 1;display: flex;
+    align-items: baseline;
+    gap: {{ block.settings.discount_text_spacing }}px;
+    {% if block.settings.promo_text_alignment == 'center' %}
+      justify-content: center;
+    {% elsif block.settings.promo_text_alignment == 'right' %}
+      justify-content: flex-end;
+    {% else %}
+      justify-content: flex-start;
+    {% endif %}
+  }
+
+  .ai-promo-discount-percent-{{ ai_gen_id }} {
+    font-size: {{ block.settings.percent_size }}px;
+    color: {{ block.settings.percent_color }};
+  }
+
+  .ai-promo-discount-off-{{ ai_gen_id }} {
+    font-size: {{ block.settings.off_size }}px;
+    color: {{ block.settings.off_color }};
+  }
+
+  .ai-promo-message-{{ ai_gen_id }} {
+    font-size: {{ block.settings.promo_message_size }}px;
+    color: {{ block.settings.promo_text_color }};
+    margin: 0 0 {{ block.settings.promo_text_spacing }}px 0;
+    line-height: 1.3;
+  }
+
+  .ai-promo-text-button-{{ ai_gen_id }} {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: {{ block.settings.promo_button_padding_vertical }}px {{ block.settings.promo_button_padding_horizontal }}px;
+    background-color: {{ block.settings.promo_button_color }};
+    color: {{ block.settings.promo_button_text_color }};
+    text-decoration: none;
+    border-radius: {{ block.settings.promo_button_border_radius }}px;
+    font-size: {{ block.settings.promo_button_font_size }}px;
+    font-weight: 500;
+    transition: all {{ block.settings.promo_animation_speed }}ms ease;
+    border: none;
+    cursor: pointer;
+    margin-top: {{ block.settings.promo_text_spacing }}px;
+    width: fit-content;
+  }
+
+  .ai-promo-text-button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.promo_button_hover_color }};
+    color: {{ block.settings.promo_button_hover_text_color }};
+    transform: translateY(-2px);
+  }
+
+  {% if block.settings.hover_effect == 'zoom' %}
+    .ai-promo-image-block-{{ ai_gen_id }}:hover .ai-promo-image-{{ ai_gen_id }} {
+      transform: scale(1.1);
+    }
+  {% elsif block.settings.hover_effect == 'fade' %}
+    .ai-promo-image-block-{{ ai_gen_id }}:hover .ai-promo-overlay-{{ ai_gen_id }} {
+      opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 | times: 0.7 }};
+    }
+  {% endif %}
+
+  {% if block.settings.promo_hover_effect == 'zoom' %}
+    .ai-promo-text-block-{{ ai_gen_id }}:hover {
+      background-size: 110%;}
+  {% elsif block.settings.promo_hover_effect == 'fade' %}
+    .ai-promo-text-block-{{ ai_gen_id }}:hover .ai-promo-text-overlay-{{ ai_gen_id }} {
+      opacity: {{ block.settings.promo_overlay_opacity | divided_by: 100.0 | times: 0.7 }};
+    }
+  {% endif %}
+
+  .ai-discount-counter-{{ ai_gen_id }} {
+    display: inline-block;
+    {% if block.settings.discount_animation == 'bounce' %}
+      animation: ai-bounce-{{ ai_gen_id }} 0.5s ease-in-out;
+    {% elsif block.settings.discount_animation == 'pulse' %}
+      animation: ai-pulse-{{ ai_gen_id }} 0.5s ease-in-out;
+    {% elsif block.settings.discount_animation == 'shake' %}
+      animation: ai-shake-{{ ai_gen_id }} 0.5s ease-in-out;
+    {% endif %}
+  }
+
+  @keyframes ai-bounce-{{ ai_gen_id }} {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+  }
+
+  @keyframes ai-pulse-{{ ai_gen_id }} {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes ai-shake-{{ ai_gen_id }} {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+
+  @media screen and (max-width: 768px) {
+    .ai-promo-section-{{ ai_gen_id }} {
+      flex-direction: column;
+      gap: {{ block.settings.gap_size }}px;
+    }
+
+    .ai-promo-text-block-{{ ai_gen_id }} {
+      aspect-ratio: 1;
+      min-height: 250px;
+    }
+
+    .ai-promo-image-block-{{ ai_gen_id }} {
+      min-height: 250px;
+    }
+
+    .ai-promo-heading-{{ ai_gen_id }} {
+      font-size: {{ block.settings.heading_size | times: 0.8 }}px;
+    }
+
+    .ai-promo-subheading-{{ ai_gen_id }} {
+      font-size: {{ block.settings.subheading_size | times: 0.9 }}px;
+    }
+
+    .ai-promo-discount-{{ ai_gen_id }} {
+      font-size: {{ block.settings.discount_size | times: 0.8 }}px;
+    }
+
+    .ai-promo-message-{{ ai_gen_id }} {
+      font-size: {{ block.settings.promo_message_size | times: 0.9 }}px;
+    }
+
+    .ai-promo-discount-percent-{{ ai_gen_id }} {
+      font-size: {{ block.settings.percent_size | times: 0.8 }}px;
+    }
+
+    .ai-promo-discount-off-{{ ai_gen_id }} {
+      font-size: {{ block.settings.off_size | times: 0.8 }}px;
+    }
+  }
+{% endstyle %}<promo-section-{{ ai_gen_id }}
+  class="ai-promo-section-{{ ai_gen_id }}"
+  data-animation-speed="{{ block.settings.discount_animation_speed }}"
+  data-discount-value="{{ block.settings.discount_value }}"
+  data-animation-type="{{ block.settings.discount_animation }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-promo-block-{{ ai_gen_id }} ai-promo-image-block-{{ ai_gen_id }}">
+    {% if block.settings.image %}
+      <img
+        src="{{ block.settings.image | image_url: width: 800 }}"
+        alt="{{ block.settings.image.alt | escape }}"
+        class="ai-promo-image-{{ ai_gen_id }}"
+        loading="lazy"
+        width="{{ block.settings.image.width }}"
+        height="{{ block.settings.image.height }}">
+    {% else %}
+      <div class="ai-promo-image-placeholder-{{ ai_gen_id }}">
+        {{ 'image' | placeholder_svg_tag }}<div class="ai-promo-empty-state-{{ ai_gen_id }}">
+          Add an image (recommended: 800x800px)
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="ai-promo-overlay-{{ ai_gen_id }}"></div>
+
+    <div class="ai-promo-content-{{ ai_gen_id }}">
+      {% if block.settings.heading != blank %}
+        <h2 class="ai-promo-heading-{{ ai_gen_id }}">{{ block.settings.heading }}</h2>
+      {% endif %}
+
+      {% if block.settings.subheading != blank %}
+        <p class="ai-promo-subheading-{{ ai_gen_id }}">{{ block.settings.subheading }}</p>
+      {% endif %}
+
+      {% if block.settings.button_text != blank %}
+        <a
+          href="{{ block.settings.button_link }}"
+          class="ai-promo-button-{{ ai_gen_id }}">
+          {{ block.settings.button_text }}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="ai-promo-block-{{ ai_gen_id }} ai-promo-text-block-{{ ai_gen_id }}">
+    {% unless block.settings.promo_image %}
+      <div class="ai-promo-text-placeholder-{{ ai_gen_id }}">
+        {{ 'image' | placeholder_svg_tag }}
+        <div class="ai-promo-empty-state-{{ ai_gen_id }}">
+          Add a background image (recommended: 1200x800px)
+        </div>
+      </div>
+    {% endunless %}
+
+    <div class="ai-promo-text-overlay-{{ ai_gen_id }}"></div>
+
+    <div class="ai-promo-text-content-{{ ai_gen_id }}">
+      {% if block.settings.discount_value > 0 %}
+        <div class="ai-promo-discount-{{ ai_gen_id }}">
+          <span class="ai-discount-counter-{{ ai_gen_id }}">0</span>
+          <span class="ai-promo-discount-percent-{{ ai_gen_id }}">{{ block.settings.percent_text }}</span>
+          <span class="ai-promo-discount-off-{{ ai_gen_id }}">{{ block.settings.off_text }}</span>
+        </div>
+      {% endif %}
+
+      {% if block.settings.promo_message != blank %}
+        <p class="ai-promo-message-{{ ai_gen_id }}">{{ block.settings.promo_message }}</p>
+      {% endif %}
+
+      {% if block.settings.promo_button_text != blank %}
+        <a
+          href="{{ block.settings.promo_button_link }}"
+          class="ai-promo-text-button-{{ ai_gen_id }}"
+        >
+          {{ block.settings.promo_button_text }}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</promo-section-{{ ai_gen_id }}><script>
+  (function() {
+    class PromoSection{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.animationSpeed = parseInt(this.dataset.animationSpeed) || 1000;
+        this.discountValue = parseInt(this.dataset.discountValue) || 0;
+        this.animationType = this.dataset.animationType || 'none';
+        this.counter = this.querySelector('.ai-discount-counter-{{ ai_gen_id }}');
+        this.hasAnimated = false;
+      }
+
+      connectedCallback() {
+        if (this.counter && this.discountValue > 0) {
+          this.setupIntersectionObserver();
+        }
+      }
+
+      setupIntersectionObserver() {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting && !this.hasAnimated) {
+                this.animateCounter();
+                this.hasAnimated = true;
+              }
+            });
+          },
+          { threshold: 0.5 }
+        );
+
+        observer.observe(this);
+      }
+
+      animateCounter() {
+        const duration = this.animationSpeed;
+        const start = 0;
+        const end = this.discountValue;
+        const startTime = performance.now();
+
+        const animate = (currentTime) => {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          let easeFunction;
+          
+          switch (this.animationType) {
+            case 'bounce':
+              easeFunction = this.easeOutBounce(progress);
+              break;
+            case 'elastic':
+              easeFunction = this.easeOutElastic(progress);
+              break;
+            case 'back':
+              easeFunction = this.easeOutBack(progress);
+              break;
+            default:
+              easeFunction = 1- Math.pow(1 - progress, 4);
+          }
+          
+          const current = Math.floor(start + (end - start) * easeFunction);
+          this.counter.textContent = current;
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            this.counter.textContent = end;
+            this.triggerEndAnimation();
+          }
+        };
+
+        requestAnimationFrame(animate);
+      }
+
+      easeOutBounce(t) {
+        if (t < 1 / 2.75) {
+          return 7.5625 * t * t;
+        } else if (t < 2 / 2.75) {
+          return 7.5625 * (t -= 1.5 / 2.75) * t + 0.75;
+        } else if (t < 2.5 / 2.75) {
+          return 7.5625 * (t -= 2.25 / 2.75) * t + 0.9375;
+        } else {
+          return 7.5625 * (t -= 2.625 / 2.75) * t + 0.984375;
+        }
+      }
+
+      easeOutElastic(t) {
+        const c4 = (2 * Math.PI) / 3;
+        return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+      }
+
+      easeOutBack(t) {
+        const c1 = 1.70158;
+        const c3 = c1 + 1;
+        return1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+      }
+
+      triggerEndAnimation() {
+        if (this.animationType !== 'none') {
+          this.counter.style.animation = `ai-${this.animationType}-{{ ai_gen_id }} 0.5s ease-in-out`;
+          setTimeout(() => {
+            this.counter.style.animation = '';
+          }, 500);
+        }
+      }
+    }
+
+    customElements.define('promo-section-{{ ai_gen_id }}', PromoSection{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Promotion section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "gap_size",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "label": "Gap between blocks",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "animation_speed",
+      "min": 300,
+      "max": 2000,
+      "step": 100,
+      "unit": "ms",
+      "label": "Image block animation speed",
+      "default": 1000
+    },
+    {
+      "type": "range",
+      "id": "promo_animation_speed",
+      "min": 300,
+      "max": 2000,
+      "step": 100,
+      "unit": "ms",
+      "label": "Promo block animation speed",
+      "default": 800
+    },
+    {
+      "type": "header",
+      "content": "Image block"
+    },
+    {
+      "type": "paragraph",
+      "content": "Recommended image resolution: 800x800px for square format"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "color",
+      "id": "image_block_bg_color",
+      "label": "Background color",
+      "default": "#f8f8f8"
+    },
+    {
+      "type": "select",
+      "id": "hover_effect",
+      "label": "Hover effect",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "zoom",
+          "label": "Zoom"
+        },
+        {
+          "value": "fade",
+          "label": "Fade overlay"
+        }
+      ],
+      "default": "zoom"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "New Collection"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Discover our latest arrivals"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Shop Now"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Image block overlay"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color_1",
+      "label": "Overlay color 1",
+      "default": "rgba(0,0,0,0.3)"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color_2",
+      "label": "Overlay color 2",
+      "default": "rgba(0,0,0,0.1)"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Overlay opacity",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Image block text"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "flex-start",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "flex-end",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "button_vertical_position",
+      "label": "Content vertical position",
+      "options": [
+        {
+          "value": "flex-start",
+          "label": "Top"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "flex-end",
+          "label": "Bottom"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "min": 16,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Heading size",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "subheading_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Subheading size",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "text_spacing",
+      "min": 8,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Text spacing",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "content_padding",
+      "min": 20,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "label": "Content padding",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Image block button"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_color",
+      "label": "Button hover color",
+      "default": "#f0f0f0"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_text_color",
+      "label": "Button hover text color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "button_font_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Button font size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "button_padding_vertical",
+      "min": 8,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Button vertical padding",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "button_padding_horizontal",
+      "min": 16,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Button horizontal padding",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Button border radius",
+      "default": 6
+    },
+    {
+      "type": "header",
+      "content": "Promotion block"
+    },
+    {
+      "type": "paragraph",
+      "content": "Recommended image resolution: 1200x800px for rectangle format"
+    },
+    {
+      "type": "image_picker",
+      "id": "promo_image",
+      "label": "Background image"
+    },
+    {
+      "type": "color",
+      "id": "promo_block_bg_color",
+      "label": "Background color",
+      "default": "#f8f8f8"
+    },
+    {
+      "type": "select",
+      "id": "promo_hover_effect",
+      "label": "Hover effect",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "zoom",
+          "label": "Zoom"
+        },
+        {
+          "value": "fade",
+          "label": "Fade overlay"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "text_block_padding",
+      "min": 20,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "label": "Content padding",
+      "default": 40
+    },
+    {
+      "type": "text",
+      "id": "promo_message",
+      "label": "Promotional message",
+      "default": "Limited time offer on selected items"
+    },
+    {
+      "type": "text",
+      "id": "promo_button_text",
+      "label": "Button text",
+      "default": "Shop Sale"
+    },
+    {
+      "type": "url",
+      "id": "promo_button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Promotion block overlay"
+    },
+    {
+      "type": "color",
+      "id": "promo_overlay_color_1",
+      "label": "Overlay color 1",
+      "default": "rgba(0,0,0,0.2)"
+    },
+    {
+      "type": "color",
+      "id": "promo_overlay_color_2",
+      "label": "Overlay color 2",
+      "default": "rgba(0,0,0,0.0)"
+    },
+    {
+      "type": "range",
+      "id": "promo_overlay_direction",
+      "min": 0,
+      "max": 360,
+      "step": 45,
+      "unit": "deg",
+      "label": "Overlay gradient direction",
+      "default": 135
+    },
+    {
+      "type": "range",
+      "id": "promo_overlay_opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Overlay opacity",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Discount animation"
+    },
+    {
+      "type": "range",
+      "id": "discount_value",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Discount percentage",
+      "default": 30
+    },
+    {
+      "type": "select",
+      "id": "discount_animation",
+      "label": "Animation type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "bounce",
+          "label": "Bounce"
+        },
+        {
+          "value": "elastic",
+          "label": "Elastic"
+        },
+        {
+          "value": "back",
+          "label": "Back"
+        },
+        {
+          "value": "pulse",
+          "label": "Pulse"
+        },
+        {
+          "value": "shake",
+          "label": "Shake"
+        }
+      ],
+      "default": "bounce"
+    },
+    {
+      "type": "range",
+      "id": "discount_animation_speed",
+      "min": 500,
+      "max": 3000,
+      "step": 100,
+      "unit": "ms",
+      "label": "Animation speed",
+      "default": 1500
+    },
+    {
+      "type": "header",
+      "content": "Discount text customization"
+    },
+    {
+      "type": "text",
+      "id": "percent_text",
+      "label": "Percent symbol text",
+      "default": "%"
+    },
+    {
+      "type": "text",
+      "id": "off_text",
+      "label": "Off text",
+      "default": "OFF"
+    },
+    {
+      "type": "range",
+      "id": "percent_size",
+      "min": 16,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Percent symbol size",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "off_size",
+      "min": 16,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Off text size",
+      "default": 32
+    },
+    {
+      "type": "color",
+      "id": "percent_color",
+      "label": "Percent symbol color",
+      "default": "#ff4444"
+    },
+    {
+      "type": "color",
+      "id": "off_color",
+      "label": "Off text color",
+      "default": "#ff4444"
+    },
+    {
+      "type": "range",
+      "id": "discount_text_spacing",
+      "min": 2,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Spacing between discount elements",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Promotion block text"
+    },
+    {
+      "type": "select",
+      "id": "promo_text_alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "promo_button_vertical_position",
+      "label": "Content vertical position",
+      "options": [
+        {
+          "value": "flex-start",
+          "label": "Top"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "flex-end",
+          "label": "Bottom"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "color",
+      "id": "discount_color",
+      "label": "Discount number color",
+      "default": "#ff4444"
+    },
+    {
+      "type": "color",
+      "id": "promo_text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "discount_size",
+      "min": 24,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "label": "Discount number size",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "promo_message_size",
+      "min": 14,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Message size",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "promo_text_spacing",
+      "min": 8,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Text spacing",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Promotion block button"
+    },
+    {
+      "type": "color",
+      "id": "promo_button_color",
+      "label": "Button color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "promo_button_text_color",
+      "label": "Button text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "promo_button_hover_color",
+      "label": "Button hover color",
+      "default": "#f0f0f0"
+    },
+    {
+      "type": "color",
+      "id": "promo_button_hover_text_color",
+      "label": "Button hover text color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "promo_button_font_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Button font size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "promo_button_padding_vertical",
+      "min": 8,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Button vertical padding",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "promo_button_padding_horizontal",
+      "min": 16,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Button horizontal padding",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "promo_button_border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Button border radius",
+      "default": 6
+    }
+  ],
+  "presets": [
+    {
+      "name": "Promotion section"
+    }
+  ]
+}
+{% endschema %}

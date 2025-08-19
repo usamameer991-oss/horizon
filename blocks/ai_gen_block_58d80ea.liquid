@@ -1,0 +1,781 @@
+{% doc %}
+  @prompt
+    Create a Shopify homepage section that displays four equally sized square product category blocks in a 2x2 grid layout. Each block should feature a high-quality product image with a centered text button at the bottom middle of the image. The text buttons should have bold uppercase labels such as 'SHOP NEW ARRIVALS', 'SNEAKERS', 'SHOP BALLET FLATS', and 'SHOP SANDALS'. The buttons should have a white background, black text, and a subtle shadow for readability. The images should fully cover the block area, maintain aspect ratio, and slightly zoom on hover. Ensure equal spacing between the blocks and that the layout is responsive for desktop, tablet, and mobile. The style should be clean, minimalist, and consistent with a premium footwear brand., make this whole section small and colums view in mobile make it whole responsive and make it fancy add animtions and option for enable and disable and also debug feature
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-category-grid-{{ ai_gen_id }} {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: {{ block.settings.grid_gap }}px;
+    max-width: {{ block.settings.max_width }}px;
+    margin: 0 auto;
+    padding: {{ block.settings.section_padding }}px;
+  }
+
+  .ai-category-block-{{ ai_gen_id }} {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: {{ block.settings.border_radius }}px;
+    {% if block.settings.animations_enabled %}
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+    {% endif %}
+    {% if block.settings.debug_mode %}
+      border: 2px dashed #ff0000;
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(255,0,0,0.1),
+        rgba(255,0,0,0.1) 10px,
+        transparent 10px,
+        transparent 20px
+      );
+    {% endif %}
+  }
+
+  {% if block.settings.animations_enabled %}
+    .ai-category-block-{{ ai_gen_id }}:hover {
+      transform: translateY(-{{ block.settings.hover_lift }}px) scale({{ block.settings.hover_scale | divided_by: 100.0 }});
+      box-shadow: 0 {{ block.settings.hover_shadow }}px {{ block.settings.hover_shadow | times: 2 }}px rgba(0, 0, 0, 0.15);
+    }
+  {% endif %}
+
+  .ai-category-image-wrapper-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .ai-category-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    {% if block.settings.animations_enabled %}
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s ease;
+    {% endif %}
+  }
+
+  {% if block.settings.animations_enabled %}
+    .ai-category-block-{{ ai_gen_id }}:hover .ai-category-image-{{ ai_gen_id }} {
+      transform: scale({{ block.settings.image_zoom | divided_by: 100.0 }});
+      {% if block.settings.hover_blur_enabled %}
+        filter: blur({{ block.settings.hover_blur }}px);
+      {% endif %}
+    }
+  {% endif %}
+
+  .ai-category-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    {% if block.settings.debug_mode %}
+      background: linear-gradient(45deg, #ff9999, #ffcccc);
+    {% endif %}
+  }
+
+  .ai-category-placeholder-{{ ai_gen_id }} svg {
+    width: 60%;
+    height: 60%;
+    opacity: 0.3;
+  }
+
+  .ai-category-empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    pointer-events: none;
+    {% if block.settings.debug_mode %}
+      background-color: rgba(255, 0, 0, 0.8);
+      color: white;
+      font-weight: bold;
+    {% endif %}
+  }
+
+  .ai-category-button-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: {{ block.settings.button_bottom_spacing }}px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: {{ block.settings.button_background_color }};
+    color: {{ block.settings.button_text_color }};
+    padding: {{ block.settings.button_padding_vertical }}px {{ block.settings.button_padding_horizontal }}px;
+    border: none;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    font-weight: 700;
+    font-size: {{ block.settings.button_font_size }}px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    display: inline-block;
+    white-space: nowrap;
+    max-width: calc(100% - 40px);
+    text-align: center;
+    pointer-events: none;
+    {% if block.settings.animations_enabled %}
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: {{ block.settings.button_initial_opacity | divided_by: 100.0 }};
+    {% endif %}
+    {% if block.settings.debug_mode %}
+      border: 2px solid #00ff00;
+      background-color: rgba(0, 255, 0, 0.2) !important;
+    {% endif %}
+  }
+
+  {% if block.settings.animations_enabled %}
+    .ai-category-block-{{ ai_gen_id }}:hover .ai-category-button-{{ ai_gen_id }} {
+      background-color: {{ block.settings.button_hover_background_color }};
+      color: {{ block.settings.button_hover_text_color }};
+      transform: translateX(-50%) translateY(-{{ block.settings.button_hover_lift }}px);
+      box-shadow: 0 {{ block.settings.button_hover_shadow }}px {{ block.settings.button_hover_shadow | times: 2 }}px rgba(0, 0, 0, 0.25);
+      opacity: 1;
+    }
+  {% endif %}
+
+  {% if block.settings.animations_enabled and block.settings.entrance_animation %}
+    .ai-category-block-{{ ai_gen_id }} {
+      opacity: 0;
+      transform: translateY(30px);
+      animation: ai-fadeInUp-{{ ai_gen_id }} 0.8s ease forwards;
+    }
+
+    .ai-category-block-{{ ai_gen_id }}:nth-child(1) { animation-delay: 0.1s; }
+    .ai-category-block-{{ ai_gen_id }}:nth-child(2) { animation-delay: 0.2s; }
+    .ai-category-block-{{ ai_gen_id }}:nth-child(3) { animation-delay: 0.3s; }
+    .ai-category-block-{{ ai_gen_id }}:nth-child(4) { animation-delay: 0.4s; }
+
+    @keyframes ai-fadeInUp-{{ ai_gen_id }} {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  {% endif %}
+
+  {% if block.settings.debug_mode %}
+    .ai-debug-info-{{ ai_gen_id }} {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 9999;
+      max-width: 300px;
+    }
+  {% endif %}
+
+  @media screen and (max-width: 749px) {
+    .ai-category-grid-{{ ai_gen_id }} {
+      {% if block.settings.mobile_layout == 'single' %}
+        grid-template-columns: 1fr;
+      {% else %}
+        grid-template-columns: repeat(2, 1fr);
+      {% endif %}
+      gap: {{ block.settings.mobile_grid_gap }}px;
+      padding: {{ block.settings.mobile_section_padding }}px;
+      max-width: 100%;
+    }
+
+    .ai-category-button-{{ ai_gen_id }} {
+      font-size: {{ block.settings.mobile_button_font_size }}px;
+      padding: {{ block.settings.mobile_button_padding_vertical }}px {{ block.settings.mobile_button_padding_horizontal }}px;
+      bottom: {{ block.settings.mobile_button_bottom_spacing }}px;
+    }
+
+    {% if block.settings.animations_enabled %}
+      .ai-category-block-{{ ai_gen_id }}:hover {
+        transform: translateY(-{{ block.settings.mobile_hover_lift }}px) scale({{ block.settings.mobile_hover_scale | divided_by: 100.0 }});
+      }
+    {% endif %}
+  }
+
+  @media screen and (min-width: 750px) and (max-width: 989px) {
+    .ai-category-grid-{{ ai_gen_id }} {
+      max-width: {{ block.settings.tablet_max_width }}px;
+      gap: {{ block.settings.tablet_grid_gap }}px;
+      padding: {{ block.settings.tablet_section_padding }}px;
+    }
+
+    .ai-category-button-{{ ai_gen_id }} {
+      font-size: {{ block.settings.tablet_button_font_size }}px;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .ai-category-grid-{{ ai_gen_id }} {
+      padding: {{ block.settings.desktop_section_padding }}px;
+    }
+  }
+{% endstyle %}
+
+<div class="ai-category-grid-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  {% for i in (1..4) %}
+    {% liquid
+      assign image_key = 'category_' | append: i | append: '_image'
+      assign title_key = 'category_' | append: i | append: '_title'
+      assign link_key = 'category_' | append: i | append: '_link'
+      assign category_image = block.settings[image_key]
+      assign category_title = block.settings[title_key]
+      assign category_link = block.settings[link_key]
+    %}
+    
+    <a href="{{ category_link | default: '#' }}" class="ai-category-block-{{ ai_gen_id }}">
+      <div class="ai-category-image-wrapper-{{ ai_gen_id }}">
+        {% if category_image %}
+          <img
+            src="{{ category_image | image_url: width: 600 }}"
+            alt="{{ category_image.alt | escape }}"
+            class="ai-category-image-{{ ai_gen_id }}"
+            loading="lazy"
+            width="{{ category_image.width }}"
+            height="{{ category_image.height }}"
+          >
+        {% else %}
+          <div class="ai-category-placeholder-{{ ai_gen_id }}">
+            {{ 'collection-apparel-1' | placeholder_svg_tag }}
+            <div class="ai-category-empty-state-{{ ai_gen_id }}">
+              {% if block.settings.debug_mode %}
+                DEBUG: Add category {{ i }} image
+              {% else %}
+                Add category {{ i }} image
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+      
+      {% if category_title != blank %}
+        <span class="ai-category-button-{{ ai_gen_id }}">
+          {{ category_title }}
+        </span>
+      {% endif %}
+    </a>
+  {% endfor %}
+</div>
+
+{% if block.settings.debug_mode %}
+  <div class="ai-debug-info-{{ ai_gen_id }}">
+    <strong>Debug Info:</strong><br>
+    Block ID: {{ block.id }}<br>
+    Animations: {{ block.settings.animations_enabled }}<br>
+    Mobile Layout: {{ block.settings.mobile_layout }}<br>
+    Max Width: {{ block.settings.max_width }}px<br>
+    Grid Gap: {{ block.settings.grid_gap }}px<br>
+    Hover Scale: {{ block.settings.hover_scale }}%<br>
+    Image Zoom: {{ block.settings.image_zoom }}%
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Product category grid",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "min": 400,
+      "max": 1200,
+      "step": 50,
+      "unit": "px",
+      "label": "Maximum width",
+      "default": 800
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Section padding",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "grid_gap",
+      "min": 5,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "label": "Grid spacing",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Corner radius",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Mobile layout"
+    },
+    {
+      "type": "select",
+      "id": "mobile_layout",
+      "label": "Mobile columns",
+      "options": [
+        {
+          "value": "single",
+          "label": "1 column"
+        },
+        {
+          "value": "double",
+          "label": "2 columns"
+        }
+      ],
+      "default": "double"
+    },
+    {
+      "type": "range",
+      "id": "mobile_grid_gap",
+      "min": 5,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Mobile grid spacing",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "mobile_section_padding",
+      "min": 10,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Mobile section padding",
+      "default": 15
+    },
+    {
+      "type": "header",
+      "content": "Tablet layout"
+    },
+    {
+      "type": "range",
+      "id": "tablet_max_width",
+      "min": 500,
+      "max": 900,
+      "step": 50,
+      "unit": "px",
+      "label": "Tablet maximum width",
+      "default": 700
+    },
+    {
+      "type": "range",
+      "id": "tablet_grid_gap",
+      "min": 5,
+      "max": 25,
+      "step": 1,
+      "unit": "px",
+      "label": "Tablet grid spacing",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "tablet_section_padding",
+      "min": 15,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Tablet section padding",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Desktop layout"
+    },
+    {
+      "type": "range",
+      "id": "desktop_section_padding",
+      "min": 20,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "label": "Desktop section padding",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Animations"
+    },
+    {
+      "type": "checkbox",
+      "id": "animations_enabled",
+      "label": "Enable animations",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "entrance_animation",
+      "label": "Enable entrance animation",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "hover_lift",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "label": "Hover lift effect",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "hover_scale",
+      "min": 100,
+      "max": 110,
+      "step": 1,
+      "unit": "%",
+      "label": "Hover scale",
+      "default": 102
+    },
+    {
+      "type": "range",
+      "id": "hover_shadow",
+      "min": 5,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Hover shadow",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "image_zoom",
+      "min": 100,
+      "max": 120,
+      "step": 1,
+      "unit": "%",
+      "label": "Image zoom on hover",
+      "default": 105
+    },
+    {
+      "type": "checkbox",
+      "id": "hover_blur_enabled",
+      "label": "Enable hover blur effect",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "hover_blur",
+      "min": 0,
+      "max": 3,
+      "step": 0.5,
+      "unit": "px",
+      "label": "Hover blur amount",
+      "default": 1
+    },
+    {
+      "type": "header",
+      "content": "Mobile animations"
+    },
+    {
+      "type": "range",
+      "id": "mobile_hover_lift",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "unit": "px",
+      "label": "Mobile hover lift",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "mobile_hover_scale",
+      "min": 100,
+      "max": 105,
+      "step": 1,
+      "unit": "%",
+      "label": "Mobile hover scale",
+      "default": 101
+    },
+    {
+      "type": "header",
+      "content": "Button style"
+    },
+    {
+      "type": "range",
+      "id": "button_font_size",
+      "min": 8,
+      "max": 14,
+      "step": 1,
+      "unit": "px",
+      "label": "Font size",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "button_padding_vertical",
+      "min": 6,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "label": "Vertical padding",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "button_padding_horizontal",
+      "min": 12,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Horizontal padding",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "min": 0,
+      "max": 15,
+      "step": 1,
+      "unit": "px",
+      "label": "Button corner radius",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "button_bottom_spacing",
+      "min": 15,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Button bottom spacing",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "button_initial_opacity",
+      "min": 60,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Button initial opacity",
+      "default": 85
+    },
+    {
+      "type": "range",
+      "id": "button_hover_lift",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "unit": "px",
+      "label": "Button hover lift",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "button_hover_shadow",
+      "min": 5,
+      "max": 15,
+      "step": 1,
+      "unit": "px",
+      "label": "Button hover shadow",
+      "default": 8
+    },
+    {
+      "type": "color",
+      "id": "button_background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_background_color",
+      "label": "Hover background color",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_text_color",
+      "label": "Hover text color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Mobile button style"
+    },
+    {
+      "type": "range",
+      "id": "mobile_button_font_size",
+      "min": 7,
+      "max": 12,
+      "step": 1,
+      "unit": "px",
+      "label": "Mobile font size",
+      "default": 9
+    },
+    {
+      "type": "range",
+      "id": "mobile_button_padding_vertical",
+      "min": 4,
+      "max": 12,
+      "step": 1,
+      "unit": "px",
+      "label": "Mobile vertical padding",
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "mobile_button_padding_horizontal",
+      "min": 8,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "label": "Mobile horizontal padding",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "mobile_button_bottom_spacing",
+      "min": 10,
+      "max": 30,
+      "step": 5,
+      "unit": "px",
+      "label": "Mobile button bottom spacing",
+      "default": 15
+    },
+    {
+      "type": "header",
+      "content": "Tablet button style"
+    },
+    {
+      "type": "range",
+      "id": "tablet_button_font_size",
+      "min": 8,
+      "max": 13,
+      "step": 1,
+      "unit": "px",
+      "label": "Tablet font size",
+      "default": 10
+    },
+    {
+      "type": "header",
+      "content": "Category1"
+    },
+    {
+      "type": "image_picker",
+      "id": "category_1_image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "category_1_title",
+      "label": "Button text",
+      "default": "Shop new arrivals"
+    },
+    {
+      "type": "url",
+      "id": "category_1_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Category 2"
+    },
+    {
+      "type": "image_picker",
+      "id": "category_2_image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "category_2_title",
+      "label": "Button text",
+      "default": "Sneakers"
+    },
+    {
+      "type": "url",
+      "id": "category_2_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Category 3"
+    },
+    {
+      "type": "image_picker",
+      "id": "category_3_image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "category_3_title",
+      "label": "Button text",
+      "default": "Shop ballet flats"
+    },
+    {
+      "type": "url",
+      "id": "category_3_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Category 4"
+    },
+    {
+      "type": "image_picker",
+      "id": "category_4_image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "category_4_title",
+      "label": "Button text",
+      "default": "Shop sandals"
+    },
+    {
+      "type": "url",
+      "id": "category_4_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Debug"
+    },
+    {
+      "type": "checkbox",
+      "id": "debug_mode",
+      "label": "Enable debug mode",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product category grid"
+    }
+  ]
+}
+{% endschema %}

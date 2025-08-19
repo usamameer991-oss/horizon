@@ -1,0 +1,905 @@
+{% doc %}
+  @prompt
+    create a section with two images of 50 50 percent two different images 50 percent 50 percent of the dispaly but the text is betwween the section and one button written men on one side and one button written women on another side with all settings and set positions of all elements make it responsive in mobile view show on image and buttons stacked, first of all i want it full screen and secondly add overlay over it and third i want to dispaly only one image in mobile view, all good i want to adjust position of each button separatly and alos the animation style of each button and differernt styling for each button also and also which image to show for mobile view, the mobile view animation has errors and alos the women button text is not flexible like when i add shop women so its becomes stacked text i want text to remain same when add or increase font size
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-split-image-section-{{ ai_gen_id }} {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    margin-left: calc(-50vw + 50%);
+  }
+
+  .ai-split-image-half-{{ ai_gen_id }} {
+    position: relative;
+    width: 50%;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .ai-split-image-half-{{ ai_gen_id }} img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-split-image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .ai-split-image-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    max-width: 200px;
+    max-height: 200px;
+    opacity: 0.3;
+  }
+
+  .ai-split-image-empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    font-size: 12px;
+    color: #666;
+    text-align: center;pointer-events: none;
+  }
+
+  .ai-split-image-overlay-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: {{ block.settings.overlay_color }};
+    opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};
+    z-index: 1;
+  }
+
+  .ai-split-image-content-{{ ai_gen_id }} {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 10;
+    width: 90%;
+    max-width: 600px;
+  }
+
+  .ai-split-image-heading-{{ ai_gen_id }} {
+    color: {{ block.settings.text_color }};
+    font-size: {{ block.settings.heading_size }}px;
+    margin: 0 0 {{ block.settings.text_spacing }}px 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .ai-split-image-subtext-{{ ai_gen_id }} {
+    color: {{ block.settings.text_color }};
+    font-size: {{ block.settings.subtext_size }}px;
+    margin: 0 0 {{ block.settings.button_spacing }}px 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .ai-split-image-buttons-container-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: 60px;
+  }
+
+  .ai-split-image-button-men-{{ ai_gen_id }} {
+    position: absolute;
+    top: {{ block.settings.men_button_vertical_position }}%;
+    left: {{ block.settings.men_button_horizontal_position }}%;
+    transform: translate(-50%, -50%);
+    padding: {{ block.settings.men_button_padding_vertical }}px {{ block.settings.men_button_padding_horizontal }}px;
+    background-color: {{ block.settings.men_button_background_color }};
+    color: {{ block.settings.men_button_text_color }};
+    border: {{ block.settings.men_button_border_width }}px solid {{ block.settings.men_button_border_color }};
+    border-radius: {{ block.settings.men_button_border_radius }}px;
+    font-size: {{ block.settings.men_button_font_size }}px;
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-block;
+    min-width: 120px;
+    text-align: center;
+    z-index: 10;
+    white-space: nowrap;
+  }
+
+  .ai-split-image-button-women-{{ ai_gen_id }} {
+    position: absolute;
+    top: {{ block.settings.women_button_vertical_position }}%;
+    left: {{ block.settings.women_button_horizontal_position }}%;
+    transform: translate(-50%, -50%);
+    padding: {{ block.settings.women_button_padding_vertical }}px {{ block.settings.women_button_padding_horizontal }}px;
+    background-color: {{ block.settings.women_button_background_color }};
+    color: {{ block.settings.women_button_text_color }};
+    border: {{ block.settings.women_button_border_width }}px solid {{ block.settings.women_button_border_color }};
+    border-radius: {{ block.settings.women_button_border_radius }}px;
+    font-size: {{ block.settings.women_button_font_size }}px;
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-block;
+    min-width: 120px;
+    text-align: center;
+    z-index: 10;
+    white-space: nowrap;
+  }
+
+  {% if block.settings.men_button_animation == 'slide_up' %}
+    .ai-split-image-button-men-{{ ai_gen_id }} {
+      transition: all0.3s ease;
+    }.ai-split-image-button-men-{{ ai_gen_id }}:hover {
+      background-color: {{ block.settings.men_button_hover_background_color }};
+      color: {{ block.settings.men_button_hover_text_color }};border-color: {{ block.settings.men_button_hover_border_color }};transform: translate(-50%, -50%) translateY(-5px);
+    }
+  {% elsif block.settings.men_button_animation == 'scale' %}
+    .ai-split-image-button-men-{{ ai_gen_id }} {
+      transition: all 0.3s ease;
+    }
+    .ai-split-image-button-men-{{ ai_gen_id }}:hover {
+      background-color: {{ block.settings.men_button_hover_background_color }};
+      color: {{ block.settings.men_button_hover_text_color }};
+      border-color: {{ block.settings.men_button_hover_border_color }};
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+  {% elsif block.settings.men_button_animation == 'bounce' %}
+    .ai-split-image-button-men-{{ ai_gen_id }} {
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    .ai-split-image-button-men-{{ ai_gen_id }}:hover {
+      background-color: {{ block.settings.men_button_hover_background_color }};
+      color: {{ block.settings.men_button_hover_text_color }};
+      border-color: {{ block.settings.men_button_hover_border_color }};
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+  {% else %}
+    .ai-split-image-button-men-{{ ai_gen_id }} {
+      transition: all 0.3s ease;
+    }
+    .ai-split-image-button-men-{{ ai_gen_id }}:hover {
+      background-color: {{ block.settings.men_button_hover_background_color }};
+      color: {{ block.settings.men_button_hover_text_color }};
+      border-color: {{ block.settings.men_button_hover_border_color }};}
+  {% endif %}
+
+  {% if block.settings.women_button_animation == 'slide_up' %}
+    .ai-split-image-button-women-{{ ai_gen_id }} {
+      transition: all 0.3s ease;
+    }
+    .ai-split-image-button-women-{{ ai_gen_id }}:hover {
+      background-color: {{ block.settings.women_button_hover_background_color }};
+      color: {{ block.settings.women_button_hover_text_color }};
+      border-color: {{ block.settings.women_button_hover_border_color }};
+      transform: translate(-50%, -50%) translateY(-5px);
+    }
+  {% elsif block.settings.women_button_animation == 'scale' %}
+    .ai-split-image-button-women-{{ ai_gen_id }} {
+      transition: all 0.3s ease;
+    }
+    .ai-split-image-button-women-{{ ai_gen_id }}:hover {
+      background-color: {{ block.settings.women_button_hover_background_color }};
+      color: {{ block.settings.women_button_hover_text_color }};
+      border-color: {{ block.settings.women_button_hover_border_color }};
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+  {% elsif block.settings.women_button_animation == 'bounce' %}
+    .ai-split-image-button-women-{{ ai_gen_id }} {
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    .ai-split-image-button-women-{{ ai_gen_id }}:hover {
+      background-color: {{ block.settings.women_button_hover_background_color }};
+      color: {{ block.settings.women_button_hover_text_color }};
+      border-color: {{ block.settings.women_button_hover_border_color }};
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+  {% else %}
+    .ai-split-image-button-women-{{ ai_gen_id }} {
+      transition: all 0.3s ease;
+    }
+    .ai-split-image-button-women-{{ ai_gen_id }}:hover {
+      background-color: {{ block.settings.women_button_hover_background_color }};
+      color: {{ block.settings.women_button_hover_text_color }};
+      border-color: {{ block.settings.women_button_hover_border_color }};
+    }
+  {% endif %}
+
+  @media screen and (max-width: 749px) {
+    .ai-split-image-section-{{ ai_gen_id }} {
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .ai-split-image-half-{{ ai_gen_id }} {
+      width: 100%;
+      height: 100vh;
+    }
+
+    .ai-split-image-half-{{ ai_gen_id }}:first-child {
+      {% if block.settings.mobile_image_display == 'men' %}
+        display: block;
+      {% else %}
+        display: none;
+      {% endif %}
+    }
+
+    .ai-split-image-half-{{ ai_gen_id }}:last-child {
+      {% if block.settings.mobile_image_display == 'women' %}
+        display: block;
+      {% else %}
+        display: none;
+      {% endif %}
+    }
+
+    .ai-split-image-content-{{ ai_gen_id }} {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: {{ block.settings.mobile_content_padding }}px;
+      width: 90%;
+      max-width: 400px;
+      z-index: 10;
+    }
+
+    .ai-split-image-heading-{{ ai_gen_id }} {
+      font-size: {{ block.settings.mobile_heading_size }}px;
+    }
+
+    .ai-split-image-subtext-{{ ai_gen_id }} {
+      font-size: {{ block.settings.mobile_subtext_size }}px;
+    }
+
+    .ai-split-image-buttons-container-{{ ai_gen_id }} {
+      display: flex;
+      flex-direction: {{ block.settings.mobile_button_layout }};
+      gap: {{ block.settings.mobile_button_gap }}px;
+      justify-content: center;
+      align-items: center;position: relative;
+      height: auto;
+    }
+
+    .ai-split-image-button-men-{{ ai_gen_id }},
+    .ai-split-image-button-women-{{ ai_gen_id }} {
+      position: relative;
+      top: auto;
+      left: auto;
+      transform: none;
+      {% if block.settings.mobile_button_layout == 'column' %}
+        width: 100%;
+      {% endif %}
+      font-size: {{ block.settings.mobile_button_font_size }}px;
+      transition: all 0.3s ease;
+    }
+
+    {% if block.settings.men_button_animation == 'slide_up' %}
+      .ai-split-image-button-men-{{ ai_gen_id }}:hover {
+        background-color: {{ block.settings.men_button_hover_background_color }};
+        color: {{ block.settings.men_button_hover_text_color }};
+        border-color: {{ block.settings.men_button_hover_border_color }};
+        transform: translateY(-3px);
+      }
+    {% elsif block.settings.men_button_animation == 'scale' %}
+      .ai-split-image-button-men-{{ ai_gen_id }}:hover {
+        background-color: {{ block.settings.men_button_hover_background_color }};
+        color: {{ block.settings.men_button_hover_text_color }};
+        border-color: {{ block.settings.men_button_hover_border_color }};
+        transform: scale(1.05);
+      }
+    {% elsif block.settings.men_button_animation == 'bounce' %}
+      .ai-split-image-button-men-{{ ai_gen_id }} {
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      }
+      .ai-split-image-button-men-{{ ai_gen_id }}:hover {
+        background-color: {{ block.settings.men_button_hover_background_color }};
+        color: {{ block.settings.men_button_hover_text_color }};
+        border-color: {{ block.settings.men_button_hover_border_color }};
+        transform: scale(1.02);
+      }
+    {% else %}
+      .ai-split-image-button-men-{{ ai_gen_id }}:hover {
+        background-color: {{ block.settings.men_button_hover_background_color }};
+        color: {{ block.settings.men_button_hover_text_color }};
+        border-color: {{ block.settings.men_button_hover_border_color }};
+      }
+    {% endif %}
+
+    {% if block.settings.women_button_animation == 'slide_up' %}
+      .ai-split-image-button-women-{{ ai_gen_id }}:hover {
+        background-color: {{ block.settings.women_button_hover_background_color }};
+        color: {{ block.settings.women_button_hover_text_color }};
+        border-color: {{ block.settings.women_button_hover_border_color }};
+        transform: translateY(-3px);
+      }
+    {% elsif block.settings.women_button_animation == 'scale' %}
+      .ai-split-image-button-women-{{ ai_gen_id }}:hover {
+        background-color: {{ block.settings.women_button_hover_background_color }};
+        color: {{ block.settings.women_button_hover_text_color }};
+        border-color: {{ block.settings.women_button_hover_border_color }};
+        transform: scale(1.05);
+      }
+    {% elsif block.settings.women_button_animation == 'bounce' %}
+      .ai-split-image-button-women-{{ ai_gen_id }} {
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      }
+      .ai-split-image-button-women-{{ ai_gen_id }}:hover {
+        background-color: {{ block.settings.women_button_hover_background_color }};
+        color: {{ block.settings.women_button_hover_text_color }};
+        border-color: {{ block.settings.women_button_hover_border_color }};
+        transform: scale(1.02);
+      }
+    {% else %}
+      .ai-split-image-button-women-{{ ai_gen_id }}:hover {
+        background-color: {{ block.settings.women_button_hover_background_color }};
+        color: {{ block.settings.women_button_hover_text_color }};
+        border-color: {{ block.settings.women_button_hover_border_color }};
+      }
+    {% endif %}
+  }
+{% endstyle %}
+
+<div
+  class="ai-split-image-section-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-split-image-half-{{ ai_gen_id }}">
+    {% if block.settings.men_image %}
+      <img
+        src="{{ block.settings.men_image | image_url: width: 1920}}"
+        alt="{{ block.settings.men_image.alt | escape }}"
+        loading="lazy"
+        width="{{ block.settings.men_image.width }}"
+        height="{{ block.settings.men_image.height }}"
+      >
+    {% else %}
+      <div class="ai-split-image-placeholder-{{ ai_gen_id }}">
+        {{'hero-apparel-1' | placeholder_svg_tag }}<div class="ai-split-image-empty-state-{{ ai_gen_id }}">
+          Add men's image
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="ai-split-image-half-{{ ai_gen_id }}">
+    {% if block.settings.women_image %}
+      <img
+        src="{{ block.settings.women_image | image_url: width: 1920 }}"
+        alt="{{ block.settings.women_image.alt | escape }}"
+        loading="lazy"
+        width="{{ block.settings.women_image.width }}"
+        height="{{ block.settings.women_image.height }}"
+      >
+    {% else %}
+      <div class="ai-split-image-placeholder-{{ ai_gen_id }}">
+        {{ 'hero-apparel-1' | placeholder_svg_tag }}
+        <div class="ai-split-image-empty-state-{{ ai_gen_id }}">
+          Add women's image
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="ai-split-image-overlay-{{ ai_gen_id }}"></div>
+
+  <div class="ai-split-image-content-{{ ai_gen_id }}">
+    {% if block.settings.heading != blank %}
+      <h2 class="ai-split-image-heading-{{ ai_gen_id }}">{{ block.settings.heading }}</h2>
+    {% endif %}
+
+    {% if block.settings.subtext != blank %}
+      <div class="ai-split-image-subtext-{{ ai_gen_id }}">{{ block.settings.subtext }}</div>
+    {% endif %}<div class="ai-split-image-buttons-container-{{ ai_gen_id }}">
+      <a
+        href="{{ block.settings.men_button_link }}"
+        class="ai-split-image-button-men-{{ ai_gen_id }}"
+      >
+        {{ block.settings.men_button_text }}
+      </a><a
+        href="{{ block.settings.women_button_link }}"
+        class="ai-split-image-button-women-{{ ai_gen_id }}"
+      >
+        {{ block.settings.women_button_text }}
+      </a>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Split image section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Images"
+    },
+    {
+      "type": "image_picker",
+      "id": "men_image",
+      "label": "Men's image"
+    },
+    {
+      "type": "image_picker",
+      "id": "women_image",
+      "label": "Women's image"
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "label": "Overlay opacity",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Shop by Category"
+    },
+    {
+      "type": "textarea",
+      "id": "subtext",
+      "label": "Subtext",
+      "default": "Discover our latest collections designed for every style"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "min": 20,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "label": "Heading size",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "subtext_size",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "label": "Subtext size",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "text_spacing",
+      "min": 10,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Spacing below heading",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "button_spacing",
+      "min": 20,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "Spacing below subtext",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Men's button"
+    },
+    {
+      "type": "text",
+      "id": "men_button_text",
+      "label": "Button text",
+      "default": "Men"
+    },
+    {
+      "type": "url",
+      "id": "men_button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "range",
+      "id": "men_button_horizontal_position",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 25
+    },
+    {
+      "type": "range",
+      "id": "men_button_vertical_position",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 50
+    },
+    {
+      "type": "select",
+      "id": "men_button_animation",
+      "label": "Hover animation",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "slide_up",
+          "label": "Slide up"
+        },
+        {
+          "value": "scale",
+          "label": "Scale"
+        },
+        {
+          "value": "bounce",
+          "label": "Bounce"
+        }
+      ],
+      "default": "slide_up"
+    },
+    {
+      "type": "color",
+      "id": "men_button_background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "men_button_text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "men_button_border_color",
+      "label": "Border color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "men_button_hover_background_color",
+      "label": "Hover background color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "men_button_hover_text_color",
+      "label": "Hover text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "men_button_hover_border_color",
+      "label": "Hover border color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "men_button_font_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Font size",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "men_button_padding_vertical",
+      "min": 8,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "label": "Vertical padding",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "men_button_padding_horizontal",
+      "min": 16,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "label": "Horizontal padding",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "men_button_border_width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "label": "Border width",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "men_button_border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Women's button"
+    },
+    {
+      "type": "text",
+      "id": "women_button_text",
+      "label": "Button text",
+      "default": "Women"
+    },
+    {
+      "type": "url",
+      "id": "women_button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "range",
+      "id": "women_button_horizontal_position",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 75
+    },
+    {
+      "type": "range",
+      "id": "women_button_vertical_position",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 50
+    },
+    {
+      "type": "select",
+      "id": "women_button_animation",
+      "label": "Hover animation",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "slide_up",
+          "label": "Slide up"
+        },
+        {
+          "value": "scale",
+          "label": "Scale"
+        },
+        {
+          "value": "bounce",
+          "label": "Bounce"
+        }
+      ],
+      "default": "scale"
+    },
+    {
+      "type": "color",
+      "id": "women_button_background_color",
+      "label": "Background color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "women_button_text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "women_button_border_color",
+      "label": "Border color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "women_button_hover_background_color",
+      "label": "Hover background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "women_button_hover_text_color",
+      "label": "Hover text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "women_button_hover_border_color",
+      "label": "Hover border color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "women_button_font_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Font size",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "women_button_padding_vertical",
+      "min": 8,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "label": "Vertical padding",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "women_button_padding_horizontal",
+      "min": 16,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "label": "Horizontal padding",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "women_button_border_width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "label": "Border width",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "women_button_border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Mobile layout"
+    },
+    {
+      "type": "select",
+      "id": "mobile_image_display",
+      "label": "Mobile image to display",
+      "options": [
+        {
+          "value": "men",
+          "label": "Men's image"
+        },
+        {
+          "value": "women",
+          "label": "Women's image"
+        }
+      ],
+      "default": "men"
+    },
+    {
+      "type": "range",
+      "id": "mobile_content_padding",
+      "min": 20,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "Content padding",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "mobile_heading_size",
+      "min": 20,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "label": "Mobile heading size",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "mobile_subtext_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Mobile subtext size",
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "mobile_button_layout",
+      "label": "Mobile button layout",
+      "options": [
+        {
+          "value": "row",
+          "label": "Side by side"
+        },
+        {
+          "value": "column",
+          "label": "Stacked"
+        }
+      ],
+      "default": "column"
+    },
+    {
+      "type": "range",
+      "id": "mobile_button_gap",
+      "min": 10,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Mobile button gap",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "mobile_button_font_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Mobile button font size",
+      "default": 14
+    }
+  ],
+  "presets": [
+    {
+      "name": "Split image section"
+    }
+  ]
+}
+{% endschema %}

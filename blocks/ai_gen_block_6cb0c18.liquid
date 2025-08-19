@@ -1,0 +1,555 @@
+{% doc %}
+  @prompt
+    create a promotion fancy section with two parts like one is square for picture of product and then some text and button on it and then gap and then rectangle shape on next with text on it like the text loads from zero to the promotion added discount make it fancy and mobile responsive in mobile view both as square and one on top other bottom
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-promotion-section-{{ ai_gen_id }} {
+    display: flex;
+    gap: {{ block.settings.gap_size }}px;
+    padding: {{ block.settings.section_padding }}px;
+    background-color: {{ block.settings.background_color }};
+    border-radius: {{ block.settings.border_radius }}px;
+    max-width: 100%;
+  }
+
+  .ai-promotion-card-{{ ai_gen_id }} {
+    position: relative;
+    overflow: hidden;
+    border-radius: {{ block.settings.card_border_radius }}px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+
+  .ai-promotion-card-{{ ai_gen_id }}:hover {
+    transform: translateY(-5px);
+  }
+
+  .ai-product-card-{{ ai_gen_id }} {
+    flex: 1;
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, {{ block.settings.product_card_bg_1 }}, {{ block.settings.product_card_bg_2 }});
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 30px;
+    color: {{ block.settings.product_card_text_color }};
+  }
+
+  .ai-product-image-container-{{ ai_gen_id }} {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .ai-product-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius:12px;
+  }
+
+  .ai-product-image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-product-image-placeholder-{{ ai_gen_id }} svg {
+    width: 60%;
+    height: 60%;
+    opacity: 0.5;
+  }
+
+  .ai-product-content-{{ ai_gen_id }} {
+    text-align: center;
+  }
+
+  .ai-product-title-{{ ai_gen_id }} {
+    font-size: {{ block.settings.product_title_size }}px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+
+  .ai-product-description-{{ ai_gen_id }} {
+    font-size: {{ block.settings.product_description_size }}px;
+    margin-bottom: 20px;
+    opacity: 0.9;
+    line-height: 1.4;
+  }
+
+  .ai-product-button-{{ ai_gen_id }} {
+    background-color: {{ block.settings.button_bg_color }};
+    color: {{ block.settings.button_text_color }};
+    border: none;
+    padding: 12px 24px;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    font-size: {{ block.settings.button_text_size }}px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+  }
+
+  .ai-product-button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.button_hover_bg_color }};
+    transform: scale(1.05);
+  }
+
+  .ai-discount-card-{{ ai_gen_id }} {
+    flex: 1.5;
+    aspect-ratio: 2;
+    background: linear-gradient(135deg, {{ block.settings.discount_card_bg_1 }}, {{ block.settings.discount_card_bg_2 }});
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    color: {{ block.settings.discount_card_text_color }};text-align: center;
+  }
+
+  .ai-discount-title-{{ ai_gen_id }} {
+    font-size: {{ block.settings.discount_title_size }}px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1.2;
+  }
+
+  .ai-discount-counter-{{ ai_gen_id }} {
+    font-size: {{ block.settings.discount_counter_size }}px;
+    font-weight: 900;
+    margin-bottom: 15px;
+    color: {{ block.settings.discount_accent_color }};
+  }
+
+  .ai-discount-subtitle-{{ ai_gen_id }} {
+    font-size: {{ block.settings.discount_subtitle_size }}px;
+    opacity: 0.9;
+    line-height: 1.4;
+  }
+
+  @media screen and (max-width: 768px) {
+    .ai-promotion-section-{{ ai_gen_id }} {
+      flex-direction: column;
+      gap: {{ block.settings.mobile_gap_size }}px;padding: {{ block.settings.mobile_section_padding }}px;
+    }
+
+    .ai-product-card-{{ ai_gen_id }},
+    .ai-discount-card-{{ ai_gen_id }} {
+      aspect-ratio: 1;
+      padding: 25px;
+    }
+
+    .ai-product-title-{{ ai_gen_id }} {
+      font-size: {{ block.settings.product_title_size | times: 0.9 }}px;
+    }
+
+    .ai-discount-title-{{ ai_gen_id }} {
+      font-size: {{ block.settings.discount_title_size | times: 0.9 }}px;
+    }
+
+    .ai-discount-counter-{{ ai_gen_id }} {
+      font-size: {{ block.settings.discount_counter_size | times: 0.8 }}px;
+    }
+  }
+{% endstyle %}
+
+<promotion-counter-{{ ai_gen_id }}
+  class="ai-promotion-section-{{ ai_gen_id }}"
+  data-discount="{{ block.settings.discount_percentage }}"
+  data-duration="{{ block.settings.animation_duration }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-promotion-card-{{ ai_gen_id }} ai-product-card-{{ ai_gen_id }}">
+    <div class="ai-product-image-container-{{ ai_gen_id }}">
+      {% if block.settings.product_image %}
+        <img
+          src="{{ block.settings.product_image | image_url: width: 400}}"
+          alt="{{ block.settings.product_image.alt | escape }}"
+          class="ai-product-image-{{ ai_gen_id }}"loading="lazy"width="400"
+          height="400"
+        >
+      {% else %}
+        <div class="ai-product-image-placeholder-{{ ai_gen_id }}">
+          {{ 'product-apparel-1' | placeholder_svg_tag }}
+        </div>
+      {% endif %}
+    </div><div class="ai-product-content-{{ ai_gen_id }}">
+      {% if block.settings.product_title != blank %}
+        <h3 class="ai-product-title-{{ ai_gen_id }}">{{ block.settings.product_title }}</h3>
+      {% endif %}
+      
+      {% if block.settings.product_description != blank %}
+        <p class="ai-product-description-{{ ai_gen_id }}">{{ block.settings.product_description }}</p>
+      {% endif %}
+      
+      {% if block.settings.button_text != blank %}
+        <a
+          href="{{ block.settings.button_link | default: '#' }}"
+          class="ai-product-button-{{ ai_gen_id }}">
+          {{ block.settings.button_text }}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="ai-promotion-card-{{ ai_gen_id }} ai-discount-card-{{ ai_gen_id }}">
+    {% if block.settings.discount_title != blank %}
+      <h2 class="ai-discount-title-{{ ai_gen_id }}">{{ block.settings.discount_title }}</h2>
+    {% endif %}<div class="ai-discount-counter-{{ ai_gen_id }}">
+      <span class="ai-counter-value-{{ ai_gen_id }}">0</span>%
+    </div>
+    
+    {% if block.settings.discount_subtitle != blank %}
+      <p class="ai-discount-subtitle-{{ ai_gen_id }}">{{ block.settings.discount_subtitle }}</p>
+    {% endif %}</div>
+</promotion-counter-{{ ai_gen_id }}><script>
+  (function() {
+    classPromotionCounter{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.discount = parseInt(this.dataset.discount) || 50;
+        this.duration = parseInt(this.dataset.duration) || 2000;
+        this.counterElement = this.querySelector('.ai-counter-value-{{ ai_gen_id }}');
+        this.hasAnimated = false;}
+
+      connectedCallback() {
+        this.setupIntersectionObserver();}
+
+      setupIntersectionObserver() {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting && !this.hasAnimated) {
+              this.animateCounter();
+              this.hasAnimated = true;
+            }
+          });
+        }, {
+          threshold: 0.5
+        });
+
+        observer.observe(this);
+      }
+
+      animateCounter() {
+        const startTime = Date.now();
+        const startValue = 0;
+        const endValue = this.discount;
+
+        const animate = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / this.duration, 1);
+          const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+          const currentValue = Math.floor(startValue + (endValue - startValue) * easeOutQuart);
+          
+          this.counterElement.textContent = currentValue;
+          
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            this.counterElement.textContent = endValue;
+          }
+        };
+
+        animate();
+      }
+    }
+
+    customElements.define('promotion-counter-{{ ai_gen_id }}', PromotionCounter{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Promotion section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "gap_size",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Gap between cards",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "mobile_gap_size",
+      "min": 10,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Mobile gap",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "label": "Section padding",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "mobile_section_padding",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Mobile section padding",
+      "default": 20
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#f8f9fa"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Section border radius",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "card_border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Card border radius",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "Product card"
+    },
+    {
+      "type": "image_picker",
+      "id": "product_image",
+      "label": "Product image"
+    },
+    {
+      "type": "text",
+      "id": "product_title",
+      "label": "Product title",
+      "default": "Featured Product"
+    },
+    {
+      "type": "textarea",
+      "id": "product_description",
+      "label": "Product description",
+      "default": "Discover our amazing product with incredible features and quality."
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Shop Now"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "color",
+      "id": "product_card_bg_1",
+      "label": "Background gradient start",
+      "default": "#667eea"
+    },
+    {
+      "type": "color",
+      "id": "product_card_bg_2",
+      "label": "Background gradient end",
+      "default": "#764ba2"
+    },
+    {
+      "type": "color",
+      "id": "product_card_text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "product_title_size",
+      "min": 16,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Title size",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "product_description_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Description size",
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "Button style"
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_bg_color",
+      "label": "Hover background color",
+      "default": "#f8f9fa"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Text color",
+      "default": "#333333"
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "button_text_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Text size",
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "Discount card"
+    },
+    {
+      "type": "text",
+      "id": "discount_title",
+      "label": "Discount title",
+      "default": "Special Offer"
+    },
+    {
+      "type": "textarea",
+      "id": "discount_subtitle",
+      "label": "Discount subtitle",
+      "default": "Limited time discount on all products"
+    },
+    {
+      "type": "range",
+      "id": "discount_percentage",
+      "min": 5,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "label": "Discount percentage",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "animation_duration",
+      "min": 1000,
+      "max": 5000,
+      "step": 500,
+      "unit": "ms",
+      "label": "Animation duration",
+      "default": 2000
+    },
+    {
+      "type": "color",
+      "id": "discount_card_bg_1",
+      "label": "Background gradient start",
+      "default": "#ff6b6b"
+    },
+    {
+      "type": "color",
+      "id": "discount_card_bg_2",
+      "label": "Background gradient end",
+      "default": "#ffa726"
+    },
+    {
+      "type": "color",
+      "id": "discount_card_text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "discount_accent_color",
+      "label": "Counter accent color",
+      "default": "#ffeb3b"
+    },
+    {
+      "type": "range",
+      "id": "discount_title_size",
+      "min": 20,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "label": "Title size",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "discount_counter_size",
+      "min": 40,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "Counter size",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "discount_subtitle_size",
+      "min": 14,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Subtitle size",
+      "default": 16
+    }
+  ],
+  "presets": [
+    {
+      "name": "Promotion section"
+    }
+  ]
+}
+{% endschema %}

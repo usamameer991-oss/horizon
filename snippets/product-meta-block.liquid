@@ -1,0 +1,171 @@
+{%- comment -%}
+  Snippet: product-meta-block (v3)
+  - Shows Vendor, SKU, Availability (no "Available?" label), Category, Tags
+  - Uses section toggles (pass `settings:`) or block settings (if used as a block)
+  - Updates live on variant change across Horizon/Dawn/etc.
+{%- endcomment -%}
+
+{%- assign _product = product | default: closest.product -%}
+{%- assign _v = _product.selected_or_first_available_variant -%}
+
+{%- assign _s = nil -%}
+{%- if block and block.settings -%}
+  {%- assign _s = block.settings -%}
+{%- elsif settings -%}
+  {%- assign _s = settings -%}
+{%- else -%}
+  {%- assign _s = hash -%}
+{%- endif -%}
+
+{%- assign _uid = block.id | default: section.id | default: _product.id -%}
+
+<section class="product-meta" id="pm-{{ _uid }}" {% if block %}{{ block.shopify_attributes }}{% endif %} aria-label="Product meta">
+  <div class="product-meta__wrap">
+    {%- if _s.show_vendor and _product.vendor != blank -%}
+      <div class="product-meta__row"><strong>Vendor:</strong><span>{{ _product.vendor }}</span></div>
+    {%- endif -%}
+
+    {%- if _s.show_sku -%}
+      <div class="product-meta__row">
+        <strong>SKU:</strong>
+        <span class="pm-sku">{{ _v.sku | default: '—' }}</span>
+      </div>
+    {%- endif -%}
+
+    {%- if _s.show_available -%}
+      <div class="product-meta__row">
+        <span class="pm-available" aria-live="polite">{% if _v.available %}In stock{% else %}Out of stock{% endif %}</span>
+      </div>
+    {%- endif -%}
+
+    {%- if _s.show_type and _product.type != blank -%}
+      <div class="product-meta__row"><strong>Category:</strong><span>{{ _product.type }}</span></div>
+    {%- endif -%}
+
+    {%- if _s.show_tags and _product.tags.size > 0 -%}
+      <div class="product-meta__row">
+        <strong>Tags:</strong>
+        <span>
+          {%- assign limited_tags = _product.tags | slice: 0, _s.tags_limit -%}
+          {{ limited_tags | join: ', ' }}{%- if _product.tags.size > _s.tags_limit -%}…{%- endif -%}
+        </span>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<style>
+  #pm-{{ _uid }} .product-meta__wrap{display:grid;gap:.5rem}
+  #pm-{{ _uid }} .product-meta__row{display:flex;gap:.4rem;align-items:baseline;font-size:14px}
+  #pm-{{ _uid }} .product-meta__row strong{font-weight:600}
+  /* Keep availability plain (no badge/pill) */
+  #pm-{{ _uid }} .pm-available{
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0;
+    font-weight: 400;
+    color: inherit;
+    display: inline;
+  }
+</style>
+
+{%- comment -%} Provide variants to JS for lookups {%- endcomment -%}
+<script type="application/json" id="pm-data-{{ _uid }}">
+  {{ _product.variants | json }}
+</script>
+
+<script>
+(function(){
+  var root = document.getElementById('pm-{{ _uid }}');
+  if(!root) return;
+
+  var dataEl = document.getElementById('pm-data-{{ _uid }}');
+  var variants = [];
+  try { variants = JSON.parse(dataEl.textContent || '[]'); } catch(e){ variants = []; }
+
+  var skuEl = root.querySelector('.pm-sku');
+  var availEl = root.querySelector('.pm-available');
+
+  function findVariantById(id){
+    if(!id) return null;
+    id = Number(id);
+    for (var i=0;i<variants.length;i++){
+      if (Number(variants[i].id) === id) return variants[i];
+    }
+    return null;
+  }
+
+  function updateFromVariant(v){
+    if(!v) return;
+    if (skuEl)   skuEl.textContent   = (v.sku && v.sku.length) ? v.sku : '—';
+    if (availEl) availEl.textContent = v.available ? 'In stock' : 'Out of stock';
+  }
+
+  function readCurrentVariant(){
+    var input = document.querySelector('.buy-buttons-block [name="id"][ref="variantId"]') ||
+                document.querySelector('input[name="id"][ref="variantId"]') ||
+                document.querySelector('form[action*="/cart/add"] input[name="id"]');
+    if (input && input.value){
+      var v = findVariantById(input.value);
+      if (v) updateFromVariant(v);
+      return v;
+    }
+    return null;
+  }
+
+  // Listen to many possible theme events
+  var evtNames = [
+    'variant:change','variant:changed','theme:variant:change',
+    'product:variant:change','variantChange','product-variant:change','store:variant:change'
+  ];
+  evtNames.forEach(function(name){
+    document.addEventListener(name, function(e){
+      try{
+        var det = e && e.detail || {};
+        var v = det.variant || det.productVariant || findVariantById(det.id);
+        if (!v) v = readCurrentVariant();
+        updateFromVariant(v);
+      }catch(err){}
+    }, true);
+  });
+
+  // Watch the hidden variant input too
+  function bindInputWatch(){
+    var input = document.querySelector('.buy-buttons-block [name="id"][ref="variantId"]') ||
+                document.querySelector('input[name="id"][ref="variantId"]') ||
+                document.querySelector('form[action*="/cart/add"] input[name="id"]');
+    if (!input) return;
+
+    ['change','input'].forEach(function(n){
+      input.addEventListener(n, function(){
+        var v = findVariantById(input.value);
+        updateFromVariant(v);
+      });
+    });
+
+    var lastVal = input.value;
+    var obs = new MutationObserver(function(){
+      if (input.value !== lastVal){
+        lastVal = input.value;
+        var v = findVariantById(input.value);
+        updateFromVariant(v);
+      }
+    });
+    obs.observe(input, { attributes: true, attributeFilter: ['value'] });
+
+    setInterval(function(){
+      if (!input) return;
+      if (input.value !== lastVal){
+        lastVal = input.value;
+        var v = findVariantById(input.value);
+        updateFromVariant(v);
+      }
+    }, 300);
+  }
+
+  // Initial sync + bind
+  readCurrentVariant();
+  bindInputWatch();
+})();
+</script>

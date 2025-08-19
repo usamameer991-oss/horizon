@@ -1,0 +1,52 @@
+{%- comment -%}
+  Minimal Size picker for Horizon / OS 2.0 themes
+  Renders radios named "options[Size]" so Shopify's product-form JS
+  auto-selects the matching variant and updates price/ATC.
+{%- endcomment -%}
+
+{%- assign size_option_index = -1 -%}
+{%- for opt in product.options_with_values -%}
+  {%- if opt.name | downcase contains 'size' -%}
+    {%- assign size_option_index = forloop.index0 -%}
+    {%- assign size_values = opt.values -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- if size_option_index != -1 -%}
+  <fieldset class="SizePicker" role="radiogroup" aria-label="Choose size">
+    <legend class="visually-hidden">Size</legend>
+
+    <div class="size-grid">
+      {%- for val in size_values -%}
+        {%- assign available = false -%}
+        {%- for v in product.variants -%}
+          {%- if v.options[size_option_index] == val and v.available -%}
+            {%- assign available = true -%}{%- break -%}
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- assign checked = false -%}
+        {%- if product.selected_or_first_available_variant.options[size_option_index] == val -%}
+          {%- assign checked = true -%}
+        {%- endif -%}
+
+        <input
+          class="visually-hidden"
+          type="radio"
+          name="options[{{ product.options[size_option_index] }}]"
+          id="Size-{{ section.id }}-{{ forloop.index }}"
+          value="{{ val | escape }}"
+          {% if checked %}checked{% endif %}
+          {% unless available %}disabled{% endunless %}
+        >
+        <label
+          for="Size-{{ section.id }}-{{ forloop.index }}"
+          class="size-pill {% unless available %}is-soldout{% endunless %}"
+          aria-disabled="{% unless available %}true{% else %}false{% endunless %}"
+        >
+          {{ val }}
+        </label>
+      {%- endfor -%}
+    </div>
+  </fieldset>
+{%- endif -%}

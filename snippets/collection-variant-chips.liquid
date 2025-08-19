@@ -1,0 +1,131 @@
+{%- comment -%}
+  Shows available values for one option (e.g. Size) on collection product cards.
+
+  • Filters to AVAILABLE variants only
+  • Desktop: show on hover (default) or always (desktop_behaviour: 'always')
+  • Mobile: always visible
+  • Auto detects “size” option; if not found, falls back to the first option
+  • No section settings required
+
+  Optional params you can pass from the render call:
+    - product               : Product object (if omitted, tries card_product/product_card)
+    - option_name           : String (e.g. 'Size' or 'Shoe size')
+    - max_values            : Number (default 12)
+    - desktop_behaviour     : 'hover' | 'always'  (default 'hover')
+
+    - font_size             : Number px (default 12)
+    - font_weight           : Number 100–900 (default 500)
+    - radius                : Number px (default 12)
+    - bg                    : CSS color (default rgba(0,0,0,.06))
+    - text                  : CSS color (default var(--color-foreground))
+    - border                : CSS color (default rgba(0,0,0,.12))
+{%- endcomment -%}
+
+{%- assign _p = product | default: card_product | default: product_card -%}
+{%- if _p == blank -%}{% comment %}Nothing to render{% endcomment %}{% endif -%}
+
+{%- assign _opt_name_raw = option_name | default: '' | strip -%}
+{%- assign _opt_name = _opt_name_raw | downcase -%}
+{%- assign _desk_behaviour = desktop_behaviour | default: 'hover' -%}
+{%- assign _max = max_values | default: 12 -%}
+
+{%- assign _font_size = font_size | default: 12 -%}
+{%- assign _font_weight = font_weight | default: 500 -%}
+{%- assign _radius = radius | default: 12 -%}
+{%- assign _bg = bg | default: 'rgba(0,0,0,.06)' -%}
+{%- assign _text = text | default: 'var(--color-foreground)' -%}
+{%- assign _border = border | default: 'rgba(0,0,0,.12)' -%}
+
+{%- comment -%}Find option index{%- endcomment -%}
+{%- assign opt_index = nil -%}
+{%- for opt in _p.options_with_values -%}
+  {%- assign name_down = opt.name | downcase -%}
+  {%- if _opt_name != '' -%}
+    {%- if name_down == _opt_name -%}
+      {%- assign opt_index = forloop.index0 -%}
+      {%- break -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- if opt_index == nil -%}
+  {%- for opt in _p.options_with_values -%}
+    {%- assign name_down = opt.name | downcase -%}
+    {%- if name_down contains 'size' -%}
+      {%- assign opt_index = forloop.index0 -%}
+      {%- break -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+
+{%- if opt_index == nil -%}
+  {%- assign opt_index = 0 -%}
+{%- endif -%}
+
+{%- comment -%}Collect unique AVAILABLE values for that option{%- endcomment -%}
+{%- assign vals_pipe = '' -%}
+{%- for v in _p.variants -%}
+  {%- if v.available -%}
+    {%- assign val = v.options[opt_index] | strip -%}
+    {%- assign needle = '|' | append: val | append: '|' -%}
+    {%- unless vals_pipe contains needle -%}
+      {%- assign vals_pipe = vals_pipe | append: needle -%}
+    {%- endunless -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- assign values = vals_pipe | split: '|' | reject: '' | sort_natural -%}
+{%- if values.size > 0 -%}
+  <div class="dv-variant-chips"
+       data-show="{{ _desk_behaviour }}"
+       aria-label="Available options">
+    {%- for val in values limit: _max -%}
+      <span class="dv-chip">{{ val }}</span>
+    {%- endfor -%}
+    {%- if values.size > _max -%}
+      <span class="dv-chip dv-chip-more">+{{ values.size | minus: _max }}</span>
+    {%- endif -%}
+  </div>
+
+  <style>
+    .dv-variant-chips{
+      --dv-bg: {{ _bg }};
+      --dv-text: {{ _text }};
+      --dv-border: {{ _border }};
+      --dv-size: {{ _font_size }}px;
+      --dv-weight: {{ _font_weight }};
+      --dv-radius: {{ _radius }}px;
+
+      display:flex; flex-wrap:wrap; gap:6px; margin-top:.5rem;
+    }
+    .dv-variant-chips .dv-chip{
+      font-size:var(--dv-size);
+      font-weight:var(--dv-weight);
+      line-height:1;
+      color:var(--dv-text);
+      background:var(--dv-bg);
+      border:1px solid var(--dv-border);
+      border-radius:var(--dv-radius);
+      padding:4px 6px;
+      white-space:nowrap;
+    }
+    .dv-variant-chips .dv-chip-more{ opacity:.8 }
+
+    /* Desktop hover reveal */
+    @media (hover:hover) and (pointer:fine){
+      .dv-variant-chips[data-show="hover"]{
+        opacity:0; max-height:0; overflow:hidden; transition:opacity .18s ease;
+      }
+      .product-card:hover .dv-variant-chips[data-show="hover"],
+      .product-grid__item:hover .dv-variant-chips[data-show="hover"],
+      .product-grid-item:hover .dv-variant-chips[data-show="hover"]{
+        opacity:1; max-height:200px;
+      }
+    }
+
+    /* Mobile: always visible */
+    @media (hover:none), (pointer:coarse){
+      .dv-variant-chips{ opacity:1; max-height:none }
+    }
+  </style>
+{%- endif -%}

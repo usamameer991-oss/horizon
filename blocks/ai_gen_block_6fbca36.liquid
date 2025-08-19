@@ -1,0 +1,1013 @@
+{% doc %}
+  @prompt
+    Create a minimalistic, premium Shopify section with a large, bold marquee text effect. The text should have a fully customizable fill color and optional stroke (outline) style with adjustable thickness and color. The marquee runs smoothly and continuously but is also scroll-triggered: when the user scrolls down, the text moves from left to right, and when scrolling up, it reverses direction. Make the animation GPU-optimized for buttery-smooth performance. Allow customization for font, size, weight, spacing, speed sensitivity to scroll, and padding. Add an option for repeating text with separators (e.g., dots, icons, or emojis) and adjustable gap. Include background color controls and a toggle for transparent backgrounds. Make it responsive so text scales elegantly on all devices. Keep the overall look clean, modern, and minimal, suitable for a luxury brand, while ensuring the code is clean, optimized, and accessible, no that not better i want i simple text other outlined text and make it fancy add different animations and stlyles and the speed of text fast when i scroll down and also the direction of text adjust, so first i want both type of text like outline and simple text and want to use both at same time in same line and secondly remove separator and also add adjust direction of text, also add uppercase letter and thin thick  text
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-marquee-container-{{ ai_gen_id }} {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    background: {% if block.settings.transparent_background %}transparent{% else %}{{ block.settings.background_color }}{% endif %};
+    padding: {{ block.settings.padding_top }}px 0 {{ block.settings.padding_bottom }}px;
+    {% if block.settings.enable_gradient_bg %}
+      background: linear-gradient({{ block.settings.gradient_angle }}deg, {{ block.settings.gradient_color_1 }}, {{ block.settings.gradient_color_2 }});
+    {% endif %}
+  }
+
+  .ai-marquee-track-{{ ai_gen_id }} {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    will-change: transform;
+    transform: translateX(0);
+    {% if block.settings.animation_style == 'wave' %}
+      animation: ai-wave-{{ ai_gen_id }} 3s ease-in-out infinite;
+    {% elsif block.settings.animation_style == 'pulse' %}
+      animation: ai-pulse-{{ ai_gen_id }} 2s ease-in-out infinite;
+    {% elsif block.settings.animation_style == 'glow' %}
+      animation: ai-glow-{{ ai_gen_id }} 2s ease-in-out infinite alternate;
+    {% elsif block.settings.animation_style == 'bounce' %}
+      animation: ai-bounce-{{ ai_gen_id }} 2s ease-in-out infinite;
+    {% endif %}
+  }
+
+  .ai-marquee-text-group-{{ ai_gen_id }} {
+    display: inline-flex;
+    align-items: center;
+    margin-right: {{ block.settings.text_group_spacing }}px;
+  }
+
+  .ai-marquee-text-filled-{{ ai_gen_id }} {
+    font-family: {{ block.settings.font_family.family }}, {{ block.settings.font_family.fallback_families }};
+    font-weight: {{ block.settings.filled_font_weight }};
+    font-size: {{ block.settings.font_size }}px;
+    letter-spacing: {{ block.settings.letter_spacing }}px;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    user-select: none;
+    pointer-events: none;
+    display: inline-block;
+    position: relative;
+    color: {{ block.settings.filled_text_color }};
+    -webkit-text-fill-color: {{ block.settings.filled_text_color }};
+    margin-right: {{ block.settings.text_spacing }}px;
+    text-transform: {% if block.settings.filled_uppercase %}uppercase{% else %}none{% endif %};
+    {% if block.settings.filled_text_shadow %}
+      text-shadow: {{ block.settings.filled_shadow_x }}px {{ block.settings.filled_shadow_y }}px {{ block.settings.filled_shadow_blur }}px {{ block.settings.filled_shadow_color }};
+    {% endif %}
+    {% if block.settings.enable_3d_effect %}
+      transform: perspective(500px) rotateX({{ block.settings.rotate_x }}deg) rotateY({{ block.settings.rotate_y }}deg);
+    {% endif %}
+    {% if block.settings.filled_italic %}
+      font-style: italic;
+    {% endif %}
+  }
+
+  .ai-marquee-text-outlined-{{ ai_gen_id }} {
+    font-family: {{ block.settings.font_family.family }}, {{ block.settings.font_family.fallback_families }};
+    font-weight: {{ block.settings.outlined_font_weight }};
+    font-size: {{ block.settings.font_size }}px;
+    letter-spacing: {{ block.settings.letter_spacing }}px;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    user-select: none;
+    pointer-events: none;
+    display: inline-block;
+    position: relative;
+    color: transparent;
+    -webkit-text-stroke: {{ block.settings.stroke_width }}px {{ block.settings.stroke_color }};
+    text-stroke: {{ block.settings.stroke_width }}px {{ block.settings.stroke_color }};
+    text-transform: {% if block.settings.outlined_uppercase %}uppercase{% else %}none{% endif %};
+    {% if block.settings.enable_3d_effect %}
+      transform: perspective(500px) rotateX({{ block.settings.rotate_x }}deg) rotateY({{ block.settings.rotate_y }}deg);
+    {% endif %}
+    {% if block.settings.outlined_italic %}
+      font-style: italic;
+    {% endif %}
+  }
+
+  .ai-marquee-text-thin-{{ ai_gen_id }} {
+    font-family: {{ block.settings.font_family.family }}, {{ block.settings.font_family.fallback_families }};
+    font-weight: {{ block.settings.thin_font_weight }};
+    font-size: {{ block.settings.font_size }}px;
+    letter-spacing: {{ block.settings.letter_spacing }}px;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    user-select: none;
+    pointer-events: none;
+    display: inline-block;
+    position: relative;
+    color: {{ block.settings.thin_text_color }};
+    -webkit-text-fill-color: {{ block.settings.thin_text_color }};
+    margin-right: {{ block.settings.text_spacing }}px;
+    text-transform: {% if block.settings.thin_uppercase %}uppercase{% else %}none{% endif %};
+    {% if block.settings.thin_text_shadow %}
+      text-shadow: {{ block.settings.thin_shadow_x }}px {{ block.settings.thin_shadow_y }}px {{ block.settings.thin_shadow_blur }}px {{ block.settings.thin_shadow_color }};
+    {% endif %}
+    {% if block.settings.enable_3d_effect %}
+      transform: perspective(500px) rotateX({{ block.settings.rotate_x }}deg) rotateY({{ block.settings.rotate_y }}deg);
+    {% endif %}
+    {% if block.settings.thin_italic %}
+      font-style: italic;
+    {% endif %}
+  }
+
+  .ai-marquee-text-thick-{{ ai_gen_id }} {
+    font-family: {{ block.settings.font_family.family }}, {{ block.settings.font_family.fallback_families }};
+    font-weight: {{ block.settings.thick_font_weight }};
+    font-size: {{ block.settings.font_size }}px;
+    letter-spacing: {{ block.settings.letter_spacing }}px;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    user-select: none;
+    pointer-events: none;
+    display: inline-block;
+    position: relative;
+    color: {{ block.settings.thick_text_color }};
+    -webkit-text-fill-color: {{ block.settings.thick_text_color }};
+    margin-right: {{ block.settings.text_spacing }}px;
+    text-transform: {% if block.settings.thick_uppercase %}uppercase{% else %}none{% endif %};
+    {% if block.settings.thick_text_shadow %}
+      text-shadow: {{ block.settings.thick_shadow_x }}px {{ block.settings.thick_shadow_y }}px {{ block.settings.thick_shadow_blur }}px {{ block.settings.thick_shadow_color }};
+    {% endif %}
+    {% if block.settings.enable_3d_effect %}
+      transform: perspective(500px) rotateX({{ block.settings.rotate_x }}deg) rotateY({{ block.settings.rotate_y }}deg);
+    {% endif %}
+    {% if block.settings.thick_italic %}
+      font-style: italic;
+    {% endif %}
+  }
+
+  @keyframes ai-wave-{{ ai_gen_id }} {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes ai-pulse-{{ ai_gen_id }} {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  @keyframes ai-glow-{{ ai_gen_id }} {
+    0% { filter: brightness(1); }
+    100% { filter: brightness(1.2); }
+  }
+
+  @keyframes ai-bounce-{{ ai_gen_id }} {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-15px); }
+    60% { transform: translateY(-8px); }
+  }
+
+  @media screen and (max-width: 990px) {
+    .ai-marquee-text-filled-{{ ai_gen_id }},
+    .ai-marquee-text-outlined-{{ ai_gen_id }},
+    .ai-marquee-text-thin-{{ ai_gen_id }},
+    .ai-marquee-text-thick-{{ ai_gen_id }} {
+      font-size: {{ block.settings.font_size | times: 0.7 }}px;
+    }
+    
+    .ai-marquee-text-group-{{ ai_gen_id }} {
+      margin-right: {{ block.settings.text_group_spacing | times: 0.7 }}px;
+    }
+    
+    .ai-marquee-text-filled-{{ ai_gen_id }},
+    .ai-marquee-text-thin-{{ ai_gen_id }},
+    .ai-marquee-text-thick-{{ ai_gen_id }} {
+      margin-right: {{ block.settings.text_spacing | times: 0.7 }}px;
+    }
+    
+    .ai-marquee-container-{{ ai_gen_id }} {
+      padding: {{ block.settings.padding_top | times: 0.7 }}px 0 {{ block.settings.padding_bottom | times: 0.7 }}px;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-marquee-text-filled-{{ ai_gen_id }},
+    .ai-marquee-text-outlined-{{ ai_gen_id }},
+    .ai-marquee-text-thin-{{ ai_gen_id }},
+    .ai-marquee-text-thick-{{ ai_gen_id }} {
+      font-size: {{ block.settings.font_size | times: 0.5 }}px;
+      letter-spacing: {{ block.settings.letter_spacing | times: 0.7 }}px;
+    }
+    
+    .ai-marquee-text-group-{{ ai_gen_id }} {
+      margin-right: {{ block.settings.text_group_spacing | times: 0.5 }}px;
+    }
+    
+    .ai-marquee-text-filled-{{ ai_gen_id }},
+    .ai-marquee-text-thin-{{ ai_gen_id }},
+    .ai-marquee-text-thick-{{ ai_gen_id }} {
+      margin-right: {{ block.settings.text_spacing | times: 0.5 }}px;
+    }
+    
+    .ai-marquee-container-{{ ai_gen_id }} {
+      padding: {{ block.settings.padding_top | times: 0.5 }}px 0 {{ block.settings.padding_bottom | times: 0.5 }}px;
+    }
+  }
+{% endstyle %}
+
+<scroll-marquee-{{ ai_gen_id }}
+  class="ai-marquee-container-{{ ai_gen_id }}"
+  data-base-speed="{{ block.settings.base_speed }}"
+  data-scroll-multiplier="{{ block.settings.scroll_speed_multiplier }}"
+  data-direction="{{ block.settings.marquee_direction }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-marquee-track-{{ ai_gen_id }}">
+    {% for i in (1..block.settings.repeat_count) %}
+      <div class="ai-marquee-text-group-{{ ai_gen_id }}">
+        {% if block.settings.filled_text != blank and block.settings.show_filled_text %}
+          <span class="ai-marquee-text-filled-{{ ai_gen_id }}">{{ block.settings.filled_text }}</span>
+        {% endif %}
+        {% if block.settings.outlined_text != blank and block.settings.show_outlined_text %}
+          <span class="ai-marquee-text-outlined-{{ ai_gen_id }}">{{ block.settings.outlined_text }}</span>
+        {% endif %}
+        {% if block.settings.thin_text != blank and block.settings.show_thin_text %}
+          <span class="ai-marquee-text-thin-{{ ai_gen_id }}">{{ block.settings.thin_text }}</span>
+        {% endif %}
+        {% if block.settings.thick_text != blank and block.settings.show_thick_text %}
+          <span class="ai-marquee-text-thick-{{ ai_gen_id }}">{{ block.settings.thick_text }}</span>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</scroll-marquee-{{ ai_gen_id }}>
+
+<script>
+(function() {
+  class ScrollMarquee{{ ai_gen_id }} extends HTMLElement {
+    constructor() {
+      super();
+      this.track = null;
+      this.baseSpeed = 1;
+      this.scrollMultiplier = 3;
+      this.direction = 1;
+      this.currentPosition = 0;
+      this.lastScrollY = 0;
+      this.scrollVelocity = 0;
+      this.animationId = null;
+      this.trackWidth = 0;
+      this.containerWidth = 0;
+      this.isScrolling = false;
+      this.scrollTimeout = null;
+    }
+
+    connectedCallback() {
+      this.track = this.querySelector('.ai-marquee-track-{{ ai_gen_id }}');
+      this.baseSpeed = parseFloat(this.dataset.baseSpeed) || 1;
+      this.scrollMultiplier = parseFloat(this.dataset.scrollMultiplier) || 3;
+      
+      const directionSetting = this.dataset.direction;
+      if (directionSetting === 'left') {
+        this.direction = -1;
+      } else if (directionSetting === 'right') {
+        this.direction = 1;
+      } else {
+        this.direction = 1;
+      }
+      
+      this.setupMarquee();
+      this.startAnimation();
+      this.bindEvents();
+    }
+
+    disconnectedCallback() {
+      if (this.animationId) {
+        cancelAnimationFrame(this.animationId);
+      }
+      window.removeEventListener('scroll', this.handleScroll);
+      window.removeEventListener('resize', this.handleResize);
+    }
+
+    setupMarquee() {
+      this.calculateDimensions();
+      this.duplicateContent();
+    }
+
+    calculateDimensions() {
+      this.containerWidth = this.offsetWidth;
+      this.trackWidth = this.track.scrollWidth;
+    }
+
+    duplicateContent() {
+      const originalContent = this.track.innerHTML;
+      const duplicatesNeeded = Math.ceil((this.containerWidth * 4) / this.trackWidth) + 2;
+      
+      let duplicatedContent = originalContent;
+      for (let i = 1; i < duplicatesNeeded; i++) {
+        duplicatedContent += originalContent;
+      }
+      
+      this.track.innerHTML = duplicatedContent;this.trackWidth = this.track.scrollWidth / duplicatesNeeded;
+    }
+
+    handleScroll = () => {
+      const currentScrollY = window.pageYOffset;
+      const scrollDelta = currentScrollY - this.lastScrollY;
+      
+      this.scrollVelocity = scrollDelta * this.scrollMultiplier;
+      this.isScrolling = true;
+      
+      clearTimeout(this.scrollTimeout);
+      this.scrollTimeout = setTimeout(() => {
+        this.isScrolling = false;
+        this.scrollVelocity *= 0.95;
+      }, 50);
+      
+      this.lastScrollY = currentScrollY;
+    }
+
+    handleResize = () => {
+      this.calculateDimensions();
+      this.duplicateContent();
+    }
+
+    startAnimation() {
+      const animate = () => {
+        let speed = this.baseSpeed * this.direction;
+        
+        if (this.isScrolling) {
+          speed += this.scrollVelocity * this.direction;
+        } else {
+          this.scrollVelocity *= 0.98;
+          speed += this.scrollVelocity * this.direction;
+        }
+        
+        this.currentPosition -= speed;
+        
+        if (this.currentPosition <= -this.trackWidth) {
+          this.currentPosition += this.trackWidth;
+        } else if (this.currentPosition >= this.trackWidth) {
+          this.currentPosition -= this.trackWidth;
+        }
+        
+        this.track.style.transform = `translateX(${this.currentPosition}px)`;
+        
+        this.animationId = requestAnimationFrame(animate);
+      };
+      
+      animate();
+    }
+
+    bindEvents() {
+      window.addEventListener('scroll', this.handleScroll, { passive: true });
+      window.addEventListener('resize', this.handleResize, { passive: true });
+    }
+  }
+
+  customElements.define('scroll-marquee-{{ ai_gen_id }}', ScrollMarquee{{ ai_gen_id }});
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Advanced marquee text",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Text content"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filled_text",
+      "label": "Show filled text",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "filled_text",
+      "label": "Filled text",
+      "default": "LUXURY"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_outlined_text",
+      "label": "Show outlined text",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "outlined_text",
+      "label": "Outlined text",
+      "default": "BRAND"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_thin_text",
+      "label": "Show thin text",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "thin_text",
+      "label": "Thin text",
+      "default": "ELEGANT"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_thick_text",
+      "label": "Show thick text",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "thick_text",
+      "label": "Thick text",
+      "default": "BOLD"
+    },
+    {
+      "type": "range",
+      "id": "repeat_count",
+      "min": 3,
+      "max": 15,
+      "step": 1,
+      "label": "Text repetitions",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "text_spacing",
+      "min": 10,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "label": "Space between text elements",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "text_group_spacing",
+      "min": 50,
+      "max": 200,
+      "step": 10,
+      "unit": "px",
+      "label": "Space between text groups",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "font_picker",
+      "id": "font_family",
+      "label": "Font",
+      "default": "helvetica_n4"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 50,
+      "max": 300,
+      "step": 10,
+      "unit": "px",
+      "label": "Font size",
+      "default": 120
+    },
+    {
+      "type": "range",
+      "id": "letter_spacing",
+      "min": -10,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "label": "Letter spacing",
+      "default": 5
+    },
+    {
+      "type": "header",
+      "content": "Filled text style"
+    },
+    {
+      "type": "select",
+      "id": "filled_font_weight",
+      "label": "Font weight",
+      "options": [
+        {
+          "value": "100",
+          "label": "Thin"
+        },
+        {
+          "value": "200",
+          "label": "Extra light"
+        },
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Extra bold"
+        },
+        {
+          "value": "900",
+          "label": "Black"
+        }
+      ],
+      "default": "700"
+    },
+    {
+      "type": "checkbox",
+      "id": "filled_uppercase",
+      "label": "Uppercase",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "filled_italic",
+      "label": "Italic",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "filled_text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "checkbox",
+      "id": "filled_text_shadow",
+      "label": "Enable shadow",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "filled_shadow_x",
+      "min": -20,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Shadow X offset",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "filled_shadow_y",
+      "min": -20,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Shadow Y offset",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "filled_shadow_blur",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "label": "Shadow blur",
+      "default": 6
+    },
+    {
+      "type": "color",
+      "id": "filled_shadow_color",
+      "label": "Shadow color",
+      "default": "#00000030"
+    },
+    {
+      "type": "header",
+      "content": "Outlined text style"
+    },
+    {
+      "type": "select",
+      "id": "outlined_font_weight",
+      "label": "Font weight",
+      "options": [
+        {
+          "value": "100",
+          "label": "Thin"
+        },
+        {
+          "value": "200",
+          "label": "Extra light"
+        },
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Extra bold"
+        },
+        {
+          "value": "900",
+          "label": "Black"
+        }
+      ],
+      "default": "900"
+    },
+    {
+      "type": "checkbox",
+      "id": "outlined_uppercase",
+      "label": "Uppercase",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "outlined_italic",
+      "label": "Italic",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "stroke_width",
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "unit": "px",
+      "label": "Stroke width",
+      "default": 3
+    },
+    {
+      "type": "color",
+      "id": "stroke_color",
+      "label": "Stroke color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Thin text style"
+    },
+    {
+      "type": "select",
+      "id": "thin_font_weight",
+      "label": "Font weight",
+      "options": [
+        {
+          "value": "100",
+          "label": "Thin"
+        },
+        {
+          "value": "200",
+          "label": "Extra light"
+        },
+        {
+          "value": "300",
+          "label": "Light"
+        }
+      ],
+      "default": "100"
+    },
+    {
+      "type": "checkbox",
+      "id": "thin_uppercase",
+      "label": "Uppercase",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "thin_italic",
+      "label": "Italic",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "thin_text_color",
+      "label": "Text color",
+      "default": "#666666"
+    },
+    {
+      "type": "checkbox",
+      "id": "thin_text_shadow",
+      "label": "Enable shadow",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "thin_shadow_x",
+      "min": -20,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Shadow X offset",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "thin_shadow_y",
+      "min": -20,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Shadow Y offset",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "thin_shadow_blur",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "label": "Shadow blur",
+      "default": 4
+    },
+    {
+      "type": "color",
+      "id": "thin_shadow_color",
+      "label": "Shadow color",
+      "default": "#00000020"
+    },
+    {
+      "type": "header",
+      "content": "Thick text style"
+    },
+    {
+      "type": "select",
+      "id": "thick_font_weight",
+      "label": "Font weight",
+      "options": [
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Extra bold"
+        },
+        {
+          "value": "900",
+          "label": "Black"
+        }
+      ],
+      "default": "900"
+    },
+    {
+      "type": "checkbox",
+      "id": "thick_uppercase",
+      "label": "Uppercase",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "thick_italic",
+      "label": "Italic",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "thick_text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "checkbox",
+      "id": "thick_text_shadow",
+      "label": "Enable shadow",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "thick_shadow_x",
+      "min": -20,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Shadow X offset",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "thick_shadow_y",
+      "min": -20,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Shadow Y offset",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "thick_shadow_blur",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "label": "Shadow blur",
+      "default": 8
+    },
+    {
+      "type": "color",
+      "id": "thick_shadow_color",
+      "label": "Shadow color",
+      "default": "#00000040"
+    },
+    {
+      "type": "header",
+      "content": "3D effects"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_3d_effect",
+      "label": "Enable 3D transform",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "rotate_x",
+      "min": -45,
+      "max": 45,
+      "step": 5,
+      "unit": "deg",
+      "label": "Rotate X",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "rotate_y",
+      "min": -45,
+      "max": 45,
+      "step": 5,
+      "unit": "deg",
+      "label": "Rotate Y",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Animations"
+    },
+    {
+      "type": "select",
+      "id": "animation_style",
+      "label": "Text animation",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "wave",
+          "label": "Wave"
+        },
+        {
+          "value": "pulse",
+          "label": "Pulse"
+        },
+        {
+          "value": "glow",
+          "label": "Glow"
+        },
+        {
+          "value": "bounce",
+          "label": "Bounce"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "header",
+      "content": "Movement settings"
+    },
+    {
+      "type": "select",
+      "id": "marquee_direction",
+      "label": "Movement direction",
+      "options": [
+        {
+          "value": "right",
+          "label": "Left to right"
+        },
+        {
+          "value": "left",
+          "label": "Right to left"
+        }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "range",
+      "id": "base_speed",
+      "min": 0.1,
+      "max": 5,
+      "step": 0.1,
+      "label": "Base speed",
+      "default": 1.5
+    },
+    {
+      "type": "range",
+      "id": "scroll_speed_multiplier",
+      "min": 1,
+      "max": 10,
+      "step": 0.5,
+      "label": "Scroll speed boost",
+      "default": 5
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "checkbox",
+      "id": "transparent_background",
+      "label": "Transparent background",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_gradient_bg",
+      "label": "Enable gradient background",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "gradient_angle",
+      "min": 0,
+      "max": 360,
+      "step": 15,
+      "unit": "deg",
+      "label": "Gradient angle",
+      "default": 45
+    },
+    {
+      "type": "color",
+      "id": "gradient_color_1",
+      "label": "Gradient color 1",
+      "default": "#ff6b6b"
+    },
+    {
+      "type": "color",
+      "id": "gradient_color_2",
+      "label": "Gradient color 2",
+      "default": "#4ecdc4"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 60
+    }
+  ],
+  "presets": [
+    {
+      "name": "Advanced marquee text"
+    }
+  ]
+}
+{% endschema %}

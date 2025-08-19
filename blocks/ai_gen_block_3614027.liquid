@@ -1,0 +1,738 @@
+{% doc %}
+  @prompt
+     want to add custom size chart to custom products or collections of a proudct  create somethiing for that i want to show three ti four  different size charts to  different collectinos and i also want multiple collections to show same size chart i want full size chart image on screen hd liike pop and adjust width and make it mobile responsive all add all featurs, if i add squre image in web view make it responsve and alos add padding from  top and sides slider
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-size-chart-{{ ai_gen_id }} {
+    position: relative;
+    display: inline-block;
+  }
+
+  .ai-size-chart-trigger-{{ ai_gen_id }} {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: {{ block.settings.button_padding }}px {{ block.settings.button_padding | times: 1.5 }}px;
+    background-color: {{ block.settings.button_bg_color }};
+    color: {{ block.settings.button_text_color }};
+    border: {{ block.settings.button_border_width }}px solid {{ block.settings.button_border_color }};
+    border-radius: {{ block.settings.button_border_radius }}px;
+    font-size: {{ block.settings.button_font_size }}px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .ai-size-chart-trigger-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.button_hover_bg_color }};
+    color: {{ block.settings.button_hover_text_color }};
+    border-color: {{ block.settings.button_hover_border_color }};
+  }
+
+  .ai-size-chart-trigger-{{ ai_gen_id }} svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .ai-size-chart-modal-{{ ai_gen_id }} {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: {{ block.settings.modal_padding_desktop }}px;box-sizing: border-box;
+  }
+
+  .ai-size-chart-modal-{{ ai_gen_id }}.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .ai-size-chart-modal-content-{{ ai_gen_id }} {
+    position: relative;
+    background-color: {{ block.settings.modal_bg_color }};
+    border-radius: {{ block.settings.modal_border_radius }}px;
+    max-width: {{ block.settings.modal_max_width }}px;
+    width: 100%;
+    max-height: calc(100vh - {{ block.settings.modal_padding_desktop | times: 2 }}px);
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+  }
+
+  .ai-size-chart-modal-{{ ai_gen_id }}.active .ai-size-chart-modal-content-{{ ai_gen_id }} {
+    transform: scale(1);
+  }
+
+  .ai-size-chart-modal-header-{{ ai_gen_id }} {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid {{ block.settings.modal_border_color }};
+  }
+
+  .ai-size-chart-modal-title-{{ ai_gen_id }} {
+    margin: 0;
+    font-size: {{ block.settings.modal_title_size }}px;
+    color: {{ block.settings.modal_text_color }};
+    font-weight: 600;
+  }
+
+  .ai-size-chart-close-{{ ai_gen_id }} {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: {{ block.settings.modal_text_color }};
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+
+  .ai-size-chart-close-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.modal_border_color }};
+  }
+
+  .ai-size-chart-close-{{ ai_gen_id }} svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .ai-size-chart-modal-body-{{ ai_gen_id }} {
+    padding: {{ block.settings.content_padding_desktop }}px;
+    max-height: calc(100vh - {{ block.settings.modal_padding_desktop | times: 2 }}px - 100px);
+    overflow-y: auto;
+  }
+
+  .ai-size-chart-image-container-{{ ai_gen_id }} {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .ai-size-chart-image-{{ ai_gen_id }} {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: {{ block.settings.image_border_radius }}px;
+    object-fit: contain;
+  }
+
+  .ai-size-chart-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    min-height: 400px;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: {{ block.settings.image_border_radius }}px;
+    position: relative;
+  }
+
+  .ai-size-chart-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    max-width: 200px;
+    max-height: 200px;
+    opacity: 0.3;
+  }
+
+  .ai-size-chart-empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-size:14px;
+    color: #666;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .ai-size-chart-description-{{ ai_gen_id }} {
+    margin-top: 16px;
+    color: {{ block.settings.modal_text_color }};
+    font-size: {{ block.settings.description_font_size }}px;
+    line-height: 1.5;
+  }
+
+  @media screen and (max-width: 1024px) {
+    .ai-size-chart-modal-{{ ai_gen_id }} {
+      padding: {{ block.settings.modal_padding_tablet }}px;
+    }
+
+    .ai-size-chart-modal-content-{{ ai_gen_id }} {
+      max-height: calc(100vh - {{ block.settings.modal_padding_tablet | times: 2 }}px);
+    }
+
+    .ai-size-chart-modal-body-{{ ai_gen_id }} {
+      padding: {{ block.settings.content_padding_tablet }}px;
+      max-height: calc(100vh - {{ block.settings.modal_padding_tablet | times: 2 }}px - 100px);
+    }
+  }
+
+  @media screen and (max-width: 768px) {
+    .ai-size-chart-modal-{{ ai_gen_id }} {
+      padding: {{ block.settings.modal_padding_mobile }}px;
+    }
+
+    .ai-size-chart-modal-content-{{ ai_gen_id }} {
+      max-width: 100%;
+      max-height: calc(100vh - {{ block.settings.modal_padding_mobile | times: 2 }}px);
+    }
+
+    .ai-size-chart-modal-header-{{ ai_gen_id }} {
+      padding: 16px 20px;
+    }
+
+    .ai-size-chart-modal-title-{{ ai_gen_id }} {
+      font-size: {{ block.settings.modal_title_size | times: 0.9 }}px;
+    }
+
+    .ai-size-chart-modal-body-{{ ai_gen_id }} {
+      padding: {{ block.settings.content_padding_mobile }}px;
+      max-height: calc(100vh - {{ block.settings.modal_padding_mobile | times: 2 }}px - 80px);
+    }
+
+    .ai-size-chart-trigger-{{ ai_gen_id }} {
+      font-size: {{ block.settings.button_font_size | times: 0.9 }}px;
+      padding: {{ block.settings.button_padding | times: 0.8 }}px {{ block.settings.button_padding | times: 1.2 }}px;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .ai-size-chart-modal-header-{{ ai_gen_id }} {
+      padding: 12px 16px;
+    }
+
+    .ai-size-chart-modal-title-{{ ai_gen_id }} {
+      font-size: {{ block.settings.modal_title_size | times: 0.8 }}px;
+    }
+
+    .ai-size-chart-description-{{ ai_gen_id }} {
+      font-size: {{ block.settings.description_font_size | times: 0.9 }}px;
+    }
+  }
+
+  @media screen and (orientation: landscape) and (max-height: 600px) {
+    .ai-size-chart-modal-{{ ai_gen_id }} {
+      padding: 10px;
+    }
+
+    .ai-size-chart-modal-content-{{ ai_gen_id }} {
+      max-height: calc(100vh - 20px);
+    }
+
+    .ai-size-chart-modal-body-{{ ai_gen_id }} {
+      padding: 15px;
+      max-height: calc(100vh - 20px - 70px);
+    }
+
+    .ai-size-chart-modal-header-{{ ai_gen_id }} {
+      padding: 10px 15px;
+    }
+  }
+{% endstyle %}<size-chart-{{ ai_gen_id }} class="ai-size-chart-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <button
+    type="button"
+    class="ai-size-chart-trigger-{{ ai_gen_id }}"
+    aria-label="Open size chart">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+      <line x1="9" y1="9" x2="9" y2="15"/>
+      <line x1="15" y1="9" x2="15" y2="15"/>
+      <line x1="9" y1="12" x2="15" y2="12"/>
+    </svg>
+    {{ block.settings.button_text }}
+  </button>
+
+  <div class="ai-size-chart-modal-{{ ai_gen_id }}" role="dialog" aria-modal="true" aria-labelledby="size-chart-title-{{ ai_gen_id }}">
+    <div class="ai-size-chart-modal-content-{{ ai_gen_id }}">
+      <div class="ai-size-chart-modal-header-{{ ai_gen_id }}">
+        <h2 id="size-chart-title-{{ ai_gen_id }}" class="ai-size-chart-modal-title-{{ ai_gen_id }}">
+          {{ block.settings.modal_title }}
+        </h2>
+        <button
+          type="button"
+          class="ai-size-chart-close-{{ ai_gen_id }}"
+          aria-label="Close size chart"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="ai-size-chart-modal-body-{{ ai_gen_id }}">
+        <div class="ai-size-chart-content-{{ ai_gen_id }}">
+        </div>
+      </div>
+    </div>
+  </div>
+</size-chart-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class SizeChart{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.sizeCharts = {
+          {% if block.settings.chart_1_collections != blank %}
+            chart1: {
+              collections: {{ block.settings.chart_1_collections | map: 'handle' | json }},
+              image: {{ block.settings.chart_1_image | json }},
+              description: {{ block.settings.chart_1_description | json }}
+            },
+          {% endif %}
+          {% if block.settings.chart_2_collections != blank %}
+            chart2: {
+              collections: {{ block.settings.chart_2_collections | map: 'handle' | json }},
+              image: {{ block.settings.chart_2_image | json }},
+              description: {{ block.settings.chart_2_description | json }}
+            },
+          {% endif %}
+          {% if block.settings.chart_3_collections != blank %}
+            chart3: {
+              collections: {{ block.settings.chart_3_collections | map: 'handle' | json }},
+              image: {{ block.settings.chart_3_image | json }},
+              description: {{ block.settings.chart_3_description | json }}
+            },
+          {% endif %}
+          {% if block.settings.chart_4_collections != blank %}
+            chart4: {
+              collections: {{ block.settings.chart_4_collections | map: 'handle' | json }},
+              image: {{ block.settings.chart_4_image | json }},
+              description: {{ block.settings.chart_4_description | json }}
+            }
+          {% endif %}
+        };
+        this.currentProductCollections = {{ product.collections | map: 'handle' | json }};
+      }
+
+      connectedCallback() {
+        this.trigger = this.querySelector('.ai-size-chart-trigger-{{ ai_gen_id }}');
+        this.modal = this.querySelector('.ai-size-chart-modal-{{ ai_gen_id }}');
+        this.closeBtn = this.querySelector('.ai-size-chart-close-{{ ai_gen_id }}');
+        this.content = this.querySelector('.ai-size-chart-content-{{ ai_gen_id }}');
+
+        this.setupEventListeners();
+        this.checkVisibility();
+      }
+
+      setupEventListeners() {
+        this.trigger.addEventListener('click', () => this.openModal());
+        this.closeBtn.addEventListener('click', () => this.closeModal());
+        this.modal.addEventListener('click', (e) => {
+          if (e.target === this.modal) {
+            this.closeModal();
+          }
+        });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && this.modal.classList.contains('active')) {
+            this.closeModal();
+          }
+        });
+      }
+
+      checkVisibility() {
+        const relevantChart = this.findRelevantChart();
+        if (!relevantChart) {
+          this.style.display = 'none';} else {
+          this.style.display = 'inline-block';
+          this.loadChartContent(relevantChart);
+        }
+      }
+
+      findRelevantChart() {
+        for (const [chartId, chart] of Object.entries(this.sizeCharts)) {
+          if (chart.collections && chart.collections.some(collection => 
+            this.currentProductCollections.includes(collection)
+          )) {
+            return chart;
+          }
+        }
+        return null;
+      }
+
+      loadChartContent(chart) {
+        let contentHtml = '';
+
+        if (chart.image) {
+          contentHtml += `
+            <div class="ai-size-chart-image-container-{{ ai_gen_id }}">
+              <img src="${chart.image}" alt="Size Chart" class="ai-size-chart-image-{{ ai_gen_id }}" loading="lazy">
+            </div>
+          `;
+        } else {
+          contentHtml += `
+            <div class="ai-size-chart-placeholder-{{ ai_gen_id }}">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <line x1="9" y1="9" x2="9" y2="15"/>
+                <line x1="15" y1="9" x2="15" y2="15"/>
+                <line x1="9" y1="12" x2="15" y2="12"/>
+              </svg>
+              <div class="ai-size-chart-empty-state-{{ ai_gen_id }}">
+                Add a size chart image for this collection
+              </div>
+            </div>
+          `;
+        }
+
+        if (chart.description) {
+          contentHtml += `<div class="ai-size-chart-description-{{ ai_gen_id }}">${chart.description}</div>`;
+        }
+
+        this.content.innerHTML = contentHtml;
+      }
+
+      openModal() {
+        this.modal.classList.add('active');
+        document.body.style.overflow = 'hidden';this.closeBtn.focus();
+      }
+
+      closeModal() {
+        this.modal.classList.remove('active');
+        document.body.style.overflow = '';this.trigger.focus();
+      }
+    }
+
+    customElements.define('size-chart-{{ ai_gen_id }}', SizeChart{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Size chart",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Button settings"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Size chart"
+    },
+    {
+      "type": "range",
+      "id": "button_font_size",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Font size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "button_padding",
+      "min": 4,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Padding",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "button_border_width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "label": "Border width",
+      "default": 1
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_border_color",
+      "label": "Border color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_bg_color",
+      "label": "Hover background color",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_text_color",
+      "label": "Hover text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_border_color",
+      "label": "Hover border color",
+      "default": "#333333"
+    },
+    {
+      "type": "header",
+      "content": "Modal settings"
+    },
+    {
+      "type": "text",
+      "id": "modal_title",
+      "label": "Modal title",
+      "default": "Size chart"
+    },
+    {
+      "type": "range",
+      "id": "modal_max_width",
+      "min": 400,
+      "max": 1200,
+      "step": 50,
+      "unit": "px",
+      "label": "Maximum width",
+      "default": 800
+    },
+    {
+      "type": "range",
+      "id": "modal_border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "modal_title_size",
+      "min": 16,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Title font size",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "description_font_size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "label": "Description font size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "image_border_radius",
+      "min": 0,
+      "max": 16,
+      "step": 2,
+      "unit": "px",
+      "label": "Image border radius",
+      "default": 4
+    },
+    {
+      "type": "color",
+      "id": "modal_bg_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "modal_text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "modal_border_color",
+      "label": "Border color",
+      "default": "#e6e6e6"
+    },
+    {
+      "type": "header",
+      "content": "Spacing settings"
+    },
+    {
+      "type": "range",
+      "id": "modal_padding_desktop",
+      "min": 10,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "label": "Modal padding desktop",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "modal_padding_tablet",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Modal padding tablet",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "modal_padding_mobile",
+      "min": 5,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Modal padding mobile",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "content_padding_desktop",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Content padding desktop",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "content_padding_tablet",
+      "min": 10,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Content padding tablet",
+      "default": 25
+    },
+    {
+      "type": "range",
+      "id": "content_padding_mobile",
+      "min": 5,
+      "max": 30,
+      "step": 5,
+      "unit": "px",
+      "label": "Content padding mobile",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Size chart 1"
+    },
+    {
+      "type": "collection_list",
+      "id": "chart_1_collections",
+      "label": "Collections",
+      "limit": 10
+    },
+    {
+      "type": "image_picker",
+      "id": "chart_1_image",
+      "label": "Size chart image"
+    },
+    {
+      "type": "richtext",
+      "id": "chart_1_description",
+      "label": "Description"
+    },
+    {
+      "type": "header",
+      "content": "Size chart 2"
+    },
+    {
+      "type": "collection_list",
+      "id": "chart_2_collections",
+      "label": "Collections",
+      "limit": 10
+    },
+    {
+      "type": "image_picker",
+      "id": "chart_2_image",
+      "label": "Size chart image"
+    },
+    {
+      "type": "richtext",
+      "id": "chart_2_description",
+      "label": "Description"
+    },
+    {
+      "type": "header",
+      "content": "Size chart 3"
+    },
+    {
+      "type": "collection_list",
+      "id": "chart_3_collections",
+      "label": "Collections",
+      "limit": 10
+    },
+    {
+      "type": "image_picker",
+      "id": "chart_3_image",
+      "label": "Size chart image"
+    },
+    {
+      "type": "richtext",
+      "id": "chart_3_description",
+      "label": "Description"
+    },
+    {
+      "type": "header",
+      "content": "Size chart 4"
+    },
+    {
+      "type": "collection_list",
+      "id": "chart_4_collections",
+      "label": "Collections",
+      "limit": 10
+    },
+    {
+      "type": "image_picker",
+      "id": "chart_4_image",
+      "label": "Size chart image"
+    },
+    {
+      "type": "richtext",
+      "id": "chart_4_description",
+      "label": "Description"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Size chart"
+    }
+  ]
+}
+{% endschema %}

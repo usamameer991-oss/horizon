@@ -1,0 +1,821 @@
+{% doc %}
+  @prompt
+    i want to add custom size chart to custom products or collections of a proudct  create somethiing for that
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-size-chart-{{ ai_gen_id }} {
+    margin: {{ block.settings.margin_top }}px 0 {{ block.settings.margin_bottom }}px;}
+
+  .ai-size-chart-trigger-{{ ai_gen_id }} {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: {{ block.settings.trigger_color }};
+    font-size: {{ block.settings.trigger_font_size }}px;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .ai-size-chart-trigger-{{ ai_gen_id }}:hover {
+    color: {{ block.settings.trigger_hover_color }};
+  }
+
+  .ai-size-chart-trigger-{{ ai_gen_id }} svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .ai-size-chart-modal-{{ ai_gen_id }} {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: 20px;
+  }
+
+  .ai-size-chart-modal-{{ ai_gen_id }}.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .ai-size-chart-modal-content-{{ ai_gen_id }} {
+    background: {{ block.settings.modal_background }};
+    border-radius: {{ block.settings.modal_border_radius }}px;
+    max-width: {{ block.settings.modal_max_width }}px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+  }
+
+  .ai-size-chart-modal-{{ ai_gen_id }}.active .ai-size-chart-modal-content-{{ ai_gen_id }} {
+    transform: scale(1);
+  }
+
+  .ai-size-chart-modal-header-{{ ai_gen_id }} {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid {{ block.settings.border_color }};
+  }
+
+  .ai-size-chart-modal-title-{{ ai_gen_id }} {
+    color: {{ block.settings.text_color }};
+    font-size: {{ block.settings.title_font_size }}px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .ai-size-chart-close-{{ ai_gen_id }} {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: {{ block.settings.text_color }};
+    opacity: 0.7;
+    border-radius: 4px;
+  }
+
+  .ai-size-chart-close-{{ ai_gen_id }}:hover {
+    opacity: 1;
+    background-color: {{ block.settings.border_color }};
+  }
+
+  .ai-size-chart-close-{{ ai_gen_id }} svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .ai-size-chart-modal-body-{{ ai_gen_id }} {
+    padding: 24px;
+  }
+
+  .ai-size-chart-description-{{ ai_gen_id }} {
+    color: {{ block.settings.text_color }};
+    font-size: {{ block.settings.text_font_size }}px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .ai-size-chart-table-{{ ai_gen_id }} {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  .ai-size-chart-table-{{ ai_gen_id }} th,
+  .ai-size-chart-table-{{ ai_gen_id }} td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid {{ block.settings.border_color }};
+    color: {{ block.settings.text_color }};
+    font-size: {{ block.settings.table_font_size }}px;
+  }
+
+  .ai-size-chart-table-{{ ai_gen_id }} th {
+    background-color: {{ block.settings.header_background }};
+    font-weight: 600;
+  }
+
+  .ai-size-chart-table-{{ ai_gen_id }} tr:nth-child(even) {
+    background-color: {{ block.settings.row_background }};
+  }
+
+  .ai-size-chart-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 16px;}
+
+  .ai-size-chart-image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 200px;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;position: relative;
+  }
+
+  .ai-size-chart-empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .ai-size-chart-image-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;max-width: 300px;
+    max-height: 150px;
+  }
+
+  .ai-size-chart-notes-{{ ai_gen_id }} {
+    background-color: {{ block.settings.notes_background }};
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 4px solid {{ block.settings.trigger_color }};
+  }
+
+  .ai-size-chart-notes-{{ ai_gen_id }} h4 {
+    color: {{ block.settings.text_color }};
+    font-size: {{ block.settings.text_font_size }}px;
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+
+  .ai-size-chart-notes-{{ ai_gen_id }} p {
+    color: {{ block.settings.text_color }};
+    font-size: {{ block.settings.text_font_size }}px;
+    margin: 0;line-height: 1.5;
+  }
+
+  @media screen and (max-width: 768px) {
+    .ai-size-chart-modal-content-{{ ai_gen_id }} {
+      max-width: 95%;
+      margin: 20px;
+    }
+
+    .ai-size-chart-modal-header-{{ ai_gen_id }},
+    .ai-size-chart-modal-body-{{ ai_gen_id }} {
+      padding: 16px;
+    }
+
+    .ai-size-chart-table-{{ ai_gen_id }} {
+      font-size: 12px;
+    }
+
+    .ai-size-chart-table-{{ ai_gen_id }} th,
+    .ai-size-chart-table-{{ ai_gen_id }} td {
+      padding: 8px 6px;
+    }
+  }
+{% endstyle %}<size-chart-{{ ai_gen_id }}
+  class="ai-size-chart-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+>
+  {% liquid
+    assign show_for_product = false
+    assign show_for_collection = false
+
+    if block.settings.target_products != blank
+      for target_product in block.settings.target_products
+        if target_product.id == product.id
+          assign show_for_product = true
+          break
+        endif
+      endfor
+    endif
+
+    if block.settings.target_collections != blank and show_for_product == false
+      for target_collection in block.settings.target_collections
+        if product.collections contains target_collection
+          assign show_for_collection = true
+          break
+        endif
+      endfor
+    endif
+
+    assign should_show = false
+    if block.settings.target_products == blank and block.settings.target_collections == blank
+      assign should_show = true
+    elsif show_for_product or show_for_collection
+      assign should_show = true
+    endif
+  %}
+
+  {% if should_show %}
+    <button
+      class="ai-size-chart-trigger-{{ ai_gen_id }}"
+      aria-label="Open size chart">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="18" height="18" x="3" y="3" rx="2"/>
+        <path d="M12 8v8"/>
+        <path d="m8 12 4 4 4-4"/>
+      </svg>
+      {{ block.settings.trigger_text }}
+    </button>
+
+    <div class="ai-size-chart-modal-{{ ai_gen_id }}" role="dialog" aria-modal="true" aria-labelledby="size-chart-title-{{ ai_gen_id }}">
+      <div class="ai-size-chart-modal-content-{{ ai_gen_id }}">
+        <div class="ai-size-chart-modal-header-{{ ai_gen_id }}">
+          <h2 id="size-chart-title-{{ ai_gen_id }}" class="ai-size-chart-modal-title-{{ ai_gen_id }}">
+            {{ block.settings.modal_title }}
+          </h2>
+          <button
+            class="ai-size-chart-close-{{ ai_gen_id }}"
+            aria-label="Close size chart"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m18 6-1212"/>
+              <path d="m6 6 12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="ai-size-chart-modal-body-{{ ai_gen_id }}">
+          {% if block.settings.description != blank %}
+            <div class="ai-size-chart-description-{{ ai_gen_id }}">
+              {{ block.settings.description }}
+            </div>
+          {% endif %}
+
+          {% if block.settings.size_chart_image %}
+            <img
+              src="{{ block.settings.size_chart_image | image_url: width: 800}}"
+              alt="{{ block.settings.size_chart_image.alt | escape }}"
+              class="ai-size-chart-image-{{ ai_gen_id }}"
+              loading="lazy"
+              width="{{ block.settings.size_chart_image.width }}"
+              height="{{ block.settings.size_chart_image.height }}"
+            >
+          {% else %}
+            <div class="ai-size-chart-image-placeholder-{{ ai_gen_id }}">
+              {{ 'image' | placeholder_svg_tag }}
+              <div class="ai-size-chart-empty-state-{{ ai_gen_id }}">
+                Add a size chart image
+              </div>
+            </div>
+          {% endif %}
+
+          {% if block.settings.show_table %}
+            <table class="ai-size-chart-table-{{ ai_gen_id }}">
+              <thead>
+                <tr>
+                  <th>{{ block.settings.size_header }}</th>
+                  <th>{{ block.settings.measurement_1_header }}</th>
+                  {% if block.settings.measurement_2_header != blank %}
+                    <th>{{ block.settings.measurement_2_header }}</th>
+                  {% endif %}
+                  {% if block.settings.measurement_3_header != blank %}
+                    <th>{{ block.settings.measurement_3_header }}</th>
+                  {% endif %}
+                </tr>
+              </thead>
+              <tbody>
+                {% if block.settings.size_1 != blank %}
+                  <tr>
+                    <td>{{ block.settings.size_1 }}</td>
+                    <td>{{ block.settings.size_1_measurement_1 }}</td>
+                    {% if block.settings.measurement_2_header != blank %}
+                      <td>{{ block.settings.size_1_measurement_2 }}</td>
+                    {% endif %}
+                    {% if block.settings.measurement_3_header != blank %}
+                      <td>{{ block.settings.size_1_measurement_3 }}</td>
+                    {% endif %}
+                  </tr>
+                {% endif %}
+                {% if block.settings.size_2 != blank %}
+                  <tr>
+                    <td>{{ block.settings.size_2 }}</td>
+                    <td>{{ block.settings.size_2_measurement_1 }}</td>
+                    {% if block.settings.measurement_2_header != blank %}
+                      <td>{{ block.settings.size_2_measurement_2 }}</td>
+                    {% endif %}
+                    {% if block.settings.measurement_3_header != blank %}
+                      <td>{{ block.settings.size_2_measurement_3 }}</td>
+                    {% endif %}
+                  </tr>
+                {% endif %}
+                {% if block.settings.size_3 != blank %}
+                  <tr>
+                    <td>{{ block.settings.size_3 }}</td>
+                    <td>{{ block.settings.size_3_measurement_1 }}</td>
+                    {% if block.settings.measurement_2_header != blank %}
+                      <td>{{ block.settings.size_3_measurement_2 }}</td>
+                    {% endif %}
+                    {% if block.settings.measurement_3_header != blank %}
+                      <td>{{ block.settings.size_3_measurement_3 }}</td>
+                    {% endif %}
+                  </tr>
+                {% endif %}
+                {% if block.settings.size_4 != blank %}
+                  <tr>
+                    <td>{{ block.settings.size_4 }}</td>
+                    <td>{{ block.settings.size_4_measurement_1 }}</td>
+                    {% if block.settings.measurement_2_header != blank %}
+                      <td>{{ block.settings.size_4_measurement_2 }}</td>
+                    {% endif %}
+                    {% if block.settings.measurement_3_header != blank %}
+                      <td>{{ block.settings.size_4_measurement_3 }}</td>
+                    {% endif %}
+                  </tr>
+                {% endif %}
+                {% if block.settings.size_5 != blank %}
+                  <tr>
+                    <td>{{ block.settings.size_5 }}</td>
+                    <td>{{ block.settings.size_5_measurement_1 }}</td>
+                    {% if block.settings.measurement_2_header != blank %}
+                      <td>{{ block.settings.size_5_measurement_2 }}</td>
+                    {% endif %}
+                    {% if block.settings.measurement_3_header != blank %}
+                      <td>{{ block.settings.size_5_measurement_3 }}</td>
+                    {% endif %}
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          {% endif %}
+
+          {% if block.settings.notes != blank %}
+            <div class="ai-size-chart-notes-{{ ai_gen_id }}">
+              <h4>Sizing Notes</h4>
+              {{ block.settings.notes }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</size-chart-{{ ai_gen_id }}><script>
+  (function() {
+    class SizeChart{{ai_gen_id}} extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this.trigger = this.querySelector('.ai-size-chart-trigger-{{ ai_gen_id }}');
+        this.modal = this.querySelector('.ai-size-chart-modal-{{ ai_gen_id }}');
+        this.closeButton = this.querySelector('.ai-size-chart-close-{{ ai_gen_id }}');
+
+        if (this.trigger && this.modal && this.closeButton) {
+          this.setupEventListeners();
+        }
+      }
+
+      setupEventListeners() {
+        this.trigger.addEventListener('click', () => {
+          this.openModal();
+        });
+
+        this.closeButton.addEventListener('click', () => {
+          this.closeModal();
+        });
+
+        this.modal.addEventListener('click', (event) => {
+          if (event.target === this.modal) {
+            this.closeModal();
+          }
+        });document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && this.modal.classList.contains('active')) {
+            this.closeModal();
+          }
+        });
+      }
+
+      openModal() {
+        this.modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        this.closeButton.focus();
+      }
+
+      closeModal() {
+        this.modal.classList.remove('active');
+        document.body.style.overflow = '';
+        this.trigger.focus();
+      }
+    }
+
+    customElements.define('size-chart-{{ ai_gen_id }}', SizeChart{{ai_gen_id}});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Custom size chart",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Targeting"
+    },
+    {
+      "type": "product_list",
+      "id": "target_products",
+      "label": "Show for specific products",
+      "info": "Leave empty to show for all products, or select specific products"
+    },
+    {
+      "type": "collection_list",
+      "id": "target_collections",
+      "label": "Show for collections",
+      "info": "Show size chart for products in these collections"
+    },
+    {
+      "type": "header",
+      "content": "Trigger button"
+    },
+    {
+      "type": "text",
+      "id": "trigger_text",
+      "label": "Button text",
+      "default": "Size Chart"
+    },
+    {
+      "type": "range",
+      "id": "trigger_font_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Font size",
+      "default": 14
+    },
+    {
+      "type": "color",
+      "id": "trigger_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "trigger_hover_color",
+      "label": "Hover color",
+      "default": "#666666"
+    },
+    {
+      "type": "range",
+      "id": "margin_top",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Top margin",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Bottom margin",
+      "default": 10
+    },
+    {
+      "type": "header",
+      "content": "Modal content"
+    },
+    {
+      "type": "text",
+      "id": "modal_title",
+      "label": "Modal title",
+      "default": "Size Chart"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Find your perfect fit using our detailed size chart below.</p>"
+    },
+    {
+      "type": "image_picker",
+      "id": "size_chart_image",
+      "label": "Size chart image"
+    },
+    {
+      "type": "richtext",
+      "id": "notes",
+      "label": "Sizing notes",
+      "default": "<p>All measurements are in inches. For best fit, measure yourself and compare to the chart above.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Size table"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_table",
+      "label": "Show size table",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "size_header",
+      "label": "Size column header",
+      "default": "Size"
+    },
+    {
+      "type": "text",
+      "id": "measurement_1_header",
+      "label": "First measurement header",
+      "default": "Chest (in)"
+    },
+    {
+      "type": "text",
+      "id": "measurement_2_header",
+      "label": "Second measurement header",
+      "default": "Waist (in)"
+    },
+    {
+      "type": "text",
+      "id": "measurement_3_header",
+      "label": "Third measurement header",
+      "default": "Length (in)"
+    },
+    {
+      "type": "header",
+      "content": "Size 1"
+    },
+    {
+      "type": "text",
+      "id": "size_1",
+      "label": "Size name",
+      "default": "XS"
+    },
+    {
+      "type": "text",
+      "id": "size_1_measurement_1",
+      "label": "First measurement",
+      "default": "32-34"
+    },
+    {
+      "type": "text",
+      "id": "size_1_measurement_2",
+      "label": "Second measurement",
+      "default": "26-28"
+    },
+    {
+      "type": "text",
+      "id": "size_1_measurement_3",
+      "label": "Third measurement",
+      "default": "26"
+    },
+    {
+      "type": "header",
+      "content": "Size 2"
+    },
+    {
+      "type": "text",
+      "id": "size_2",
+      "label": "Size name",
+      "default": "S"
+    },
+    {
+      "type": "text",
+      "id": "size_2_measurement_1",
+      "label": "First measurement",
+      "default": "34-36"
+    },
+    {
+      "type": "text",
+      "id": "size_2_measurement_2",
+      "label": "Second measurement",
+      "default": "28-30"
+    },
+    {
+      "type": "text",
+      "id": "size_2_measurement_3",
+      "label": "Third measurement",
+      "default": "27"
+    },
+    {
+      "type": "header",
+      "content": "Size 3"
+    },
+    {
+      "type": "text",
+      "id": "size_3",
+      "label": "Size name",
+      "default": "M"
+    },
+    {
+      "type": "text",
+      "id": "size_3_measurement_1",
+      "label": "First measurement",
+      "default": "36-38"
+    },
+    {
+      "type": "text",
+      "id": "size_3_measurement_2",
+      "label": "Second measurement",
+      "default": "30-32"
+    },
+    {
+      "type": "text",
+      "id": "size_3_measurement_3",
+      "label": "Third measurement",
+      "default": "28"
+    },
+    {
+      "type": "header",
+      "content": "Size 4"
+    },
+    {
+      "type": "text",
+      "id": "size_4",
+      "label": "Size name",
+      "default": "L"
+    },
+    {
+      "type": "text",
+      "id": "size_4_measurement_1",
+      "label": "First measurement",
+      "default": "38-40"
+    },
+    {
+      "type": "text",
+      "id": "size_4_measurement_2",
+      "label": "Second measurement",
+      "default": "32-34"
+    },
+    {
+      "type": "text",
+      "id": "size_4_measurement_3",
+      "label": "Third measurement",
+      "default": "29"
+    },
+    {
+      "type": "header",
+      "content": "Size 5"
+    },
+    {
+      "type": "text",
+      "id": "size_5",
+      "label": "Size name",
+      "default": "XL"
+    },
+    {
+      "type": "text",
+      "id": "size_5_measurement_1",
+      "label": "First measurement",
+      "default": "40-42"
+    },
+    {
+      "type": "text",
+      "id": "size_5_measurement_2",
+      "label": "Second measurement",
+      "default": "34-36"
+    },
+    {
+      "type": "text",
+      "id": "size_5_measurement_3",
+      "label": "Third measurement",
+      "default": "30"
+    },
+    {
+      "type": "header",
+      "content": "Modal style"
+    },
+    {
+      "type": "range",
+      "id": "modal_max_width",
+      "min": 400,
+      "max": 800,
+      "step": 50,
+      "unit": "px",
+      "label": "Maximum width",
+      "default": 600
+    },
+    {
+      "type": "range",
+      "id": "modal_border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 8
+    },
+    {
+      "type": "color",
+      "id": "modal_background",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border color",
+      "default": "#e6e6e6"
+    },
+    {
+      "type": "color",
+      "id": "header_background",
+      "label": "Table header background",
+      "default": "#f8f8f8"
+    },
+    {
+      "type": "color",
+      "id": "row_background",
+      "label": "Table row background",
+      "default": "#fafafa"
+    },
+    {
+      "type": "color",
+      "id": "notes_background",
+      "label": "Notes background",
+      "default": "#f0f8ff"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "title_font_size",
+      "min": 18,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Title font size",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "text_font_size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "label": "Text font size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "table_font_size",
+      "min": 12,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "label": "Table font size",
+      "default": 14
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom size chart"
+    }
+  ]
+}
+{% endschema %}

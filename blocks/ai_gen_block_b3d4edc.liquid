@@ -1,0 +1,1091 @@
+{% doc %}
+  @prompt
+    Create a Shopify section with two overlapping product images on the left and a text block on the right. The first image should be square and the second image should be portrait, with partial overlap inward. Add a smooth scroll animation: when the user scrolls down, both images move slightly toward each other (inward overlap increases), and when scrolling up, they move outward apart. Make the animation GPU-optimized, smooth, and mobile-friendly. The text block on the right should have fully customizable heading, subheading, description, and a button with adjustable link, text, background color, font size, and hover effects. Add controls in the theme editor for image upload, image size, overlap amount, animation speed, text alignment, and spacing. Ensure full responsiveness so that on mobile the images stack above the text while still maintaining the scroll animation effect. Include options for background color, padding, and margins. Use clean, optimized HTML, CSS, and JavaScript (GSAP or Intersection Observer) to ensure high performance in Shopify without lag, first the animation is not smooth i want it to feels like control from mouse add options to control and create animation like i want the animatio like card slowly overlap when i move the page and secondly i want it as on full page like big but this section with is small
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-dual-image-text-{{ ai_gen_id }} {
+    padding: {{ block.settings.section_padding_top }}px 0 {{ block.settings.section_padding_bottom }}px;
+    background-color: {{ block.settings.background_color }};
+    min-height: 100vh;
+    width: 100%;
+  }
+
+  .ai-dual-image-text__container-{{ ai_gen_id }} {
+    max-width: {{ block.settings.max_width }}px;
+    margin: 0 auto;
+    padding: 0 {{ block.settings.horizontal_padding }}px;
+    height: 100%;
+  }
+
+  .ai-dual-image-text__content-{{ ai_gen_id }} {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: {{ block.settings.content_gap }}px;
+    align-items: center;
+    min-height: 80vh;
+  }
+
+  .ai-dual-image-text__images-{{ ai_gen_id }} {
+    position: relative;
+    height: {{ block.settings.image_container_height }}px;
+    width: 100%;
+    overflow: visible;
+  }
+
+  .ai-dual-image-text__image-wrapper-{{ ai_gen_id }} {
+    position: absolute;
+    will-change: transform;
+    transition: transform {{ block.settings.animation_smoothness }}s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .ai-dual-image-text__image-wrapper--square-{{ ai_gen_id }} {
+    width: {{ block.settings.square_image_size }}px;
+    height: {{ block.settings.square_image_size }}px;
+    top: {{ block.settings.square_offset_top }}px;
+    left: {{ block.settings.square_offset_left }}px;
+    z-index: {{ block.settings.square_z_index }};
+  }
+
+  .ai-dual-image-text__image-wrapper--portrait-{{ ai_gen_id }} {
+    width: {{ block.settings.portrait_image_width }}px;
+    height: {{ block.settings.portrait_image_height }}px;
+    top: {{ block.settings.portrait_offset_top }}px;
+    right: {{ block.settings.portrait_offset_right }}px;
+    z-index: {{ block.settings.portrait_z_index }};
+  }
+
+  .ai-dual-image-text__image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: {{ block.settings.image_border_radius }}px;
+    box-shadow: 0 {{ block.settings.shadow_blur }}px {{ block.settings.shadow_spread }}px rgba(0, 0, 0, {{ block.settings.shadow_opacity }});
+  }
+
+  .ai-dual-image-text__image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f4f4f4;
+    border-radius: {{ block.settings.image_border_radius }}px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 {{ block.settings.shadow_blur }}px {{ block.settings.shadow_spread }}px rgba(0, 0, 0, {{ block.settings.shadow_opacity }});
+  }
+
+  .ai-dual-image-text__image-placeholder-{{ ai_gen_id }} svg {
+    width: 60%;
+    height: 60%;
+    opacity: 0.3;
+  }
+
+  .ai-dual-image-text__text-{{ ai_gen_id }} {
+    text-align: {{ block.settings.text_alignment }};
+    padding: {{ block.settings.text_padding }}px;
+  }
+
+  .ai-dual-image-text__heading-{{ ai_gen_id }} {
+    font-size: {{ block.settings.heading_size }}px;
+    color: {{ block.settings.heading_color }};
+    margin: 0 0 {{ block.settings.heading_margin }}px;
+    line-height: 1.2;
+    font-weight: {{ block.settings.heading_weight }};
+  }
+
+  .ai-dual-image-text__subheading-{{ ai_gen_id }} {
+    font-size: {{ block.settings.subheading_size }}px;
+    color: {{ block.settings.subheading_color }};
+    margin: 0 0 {{ block.settings.subheading_margin }}px;
+    line-height: 1.3;
+    font-weight: {{ block.settings.subheading_weight }};
+  }
+
+  .ai-dual-image-text__description-{{ ai_gen_id }} {
+    font-size: {{ block.settings.description_size }}px;
+    color: {{ block.settings.description_color }};
+    margin: 0 0 {{ block.settings.description_margin }}px;
+    line-height: 1.6;
+  }
+
+  .ai-dual-image-text__button-{{ ai_gen_id }} {
+    display: inline-block;
+    padding: {{ block.settings.button_padding_vertical }}px {{ block.settings.button_padding_horizontal }}px;
+    background-color: {{ block.settings.button_bg_color }};
+    color: {{ block.settings.button_text_color }};
+    text-decoration: none;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    font-size: {{ block.settings.button_font_size }}px;
+    font-weight: {{ block.settings.button_font_weight }};
+    transition: all 0.3s ease;
+    border: {{ block.settings.button_border_width }}px solid {{ block.settings.button_border_color }};
+    cursor: pointer;
+    text-transform: {{ block.settings.button_text_transform }};
+  }
+
+  .ai-dual-image-text__button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.button_hover_bg_color }};
+    color: {{ block.settings.button_hover_text_color }};
+    border-color: {{ block.settings.button_hover_border_color }};
+    transform: translateY(-{{ block.settings.button_hover_lift }}px);
+    box-shadow: 0 {{ block.settings.button_hover_shadow }}px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  @media screen and (max-width: 1024px) {
+    .ai-dual-image-text__content-{{ ai_gen_id }} {
+      grid-template-columns: 1fr;
+      gap: 60px;
+      min-height: auto;
+    }
+
+    .ai-dual-image-text__images-{{ ai_gen_id }} {
+      height: 400px;
+      margin: 0 auto;
+      max-width: 500px;
+    }
+
+    .ai-dual-image-text__image-wrapper--square-{{ ai_gen_id }} {
+      width: {{ block.settings.square_image_size | times: 0.8 }}px;
+      height: {{ block.settings.square_image_size | times: 0.8 }}px;
+      left: 20px;
+    }
+
+    .ai-dual-image-text__image-wrapper--portrait-{{ ai_gen_id }} {
+      width: {{ block.settings.portrait_image_width | times: 0.8 }}px;
+      height: {{ block.settings.portrait_image_height | times: 0.8 }}px;
+      right: 20px;
+    }
+  }
+
+  @media screen and (max-width: 768px) {
+    .ai-dual-image-text__images-{{ ai_gen_id }} {
+      height: 350px;
+      max-width: 400px;
+    }
+
+    .ai-dual-image-text__image-wrapper--square-{{ ai_gen_id }} {
+      width: {{ block.settings.square_image_size | times: 0.6 }}px;
+      height: {{ block.settings.square_image_size | times: 0.6 }}px;
+      left: 10px;
+    }
+
+    .ai-dual-image-text__image-wrapper--portrait-{{ ai_gen_id }} {
+      width: {{ block.settings.portrait_image_width | times: 0.6 }}px;
+      height: {{ block.settings.portrait_image_height | times: 0.6 }}px;
+      right: 10px;
+    }
+
+    .ai-dual-image-text__text-{{ ai_gen_id }} {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .ai-dual-image-text__heading-{{ ai_gen_id }} {
+      font-size: {{ block.settings.heading_size | times: 0.8 }}px;
+    }
+
+    .ai-dual-image-text__subheading-{{ ai_gen_id }} {
+      font-size: {{ block.settings.subheading_size | times: 0.9 }}px;
+    }
+  }
+{% endstyle %}
+
+<dual-image-text-{{ ai_gen_id }}
+  class="ai-dual-image-text-{{ ai_gen_id }}"
+  data-animation-intensity="{{ block.settings.animation_intensity }}"
+  data-animation-smoothness="{{ block.settings.animation_smoothness }}"
+  data-scroll-sensitivity="{{ block.settings.scroll_sensitivity }}"
+  data-overlap-direction="{{ block.settings.overlap_direction }}"
+  data-animation-type="{{ block.settings.animation_type }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-dual-image-text__container-{{ ai_gen_id }}">
+    <div class="ai-dual-image-text__content-{{ ai_gen_id }}">
+      <div class="ai-dual-image-text__images-{{ ai_gen_id }}">
+        <div class="ai-dual-image-text__image-wrapper-{{ ai_gen_id }} ai-dual-image-text__image-wrapper--square-{{ ai_gen_id }}" data-image="square">
+          {% if block.settings.square_image %}
+            <img
+              src="{{ block.settings.square_image | image_url: width: 800 }}"
+              alt="{{ block.settings.square_image.alt | escape }}"
+              class="ai-dual-image-text__image-{{ ai_gen_id }}"
+              loading="lazy"
+              width="{{ block.settings.square_image_size }}"
+              height="{{ block.settings.square_image_size }}"
+            >
+          {% else %}
+            <div class="ai-dual-image-text__image-placeholder-{{ ai_gen_id }}">
+              {{ 'image' | placeholder_svg_tag }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="ai-dual-image-text__image-wrapper-{{ ai_gen_id }} ai-dual-image-text__image-wrapper--portrait-{{ ai_gen_id }}" data-image="portrait">
+          {% if block.settings.portrait_image %}
+            <img
+              src="{{ block.settings.portrait_image | image_url: width: 800 }}"
+              alt="{{ block.settings.portrait_image.alt | escape }}"
+              class="ai-dual-image-text__image-{{ ai_gen_id }}"
+              loading="lazy"
+              width="{{ block.settings.portrait_image_width }}"
+              height="{{ block.settings.portrait_image_height }}"
+            >
+          {% else %}
+            <div class="ai-dual-image-text__image-placeholder-{{ ai_gen_id }}">
+              {{ 'image' | placeholder_svg_tag }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="ai-dual-image-text__text-{{ ai_gen_id }}">
+        {% if block.settings.heading != blank %}
+          <h2 class="ai-dual-image-text__heading-{{ ai_gen_id }}">{{ block.settings.heading }}</h2>
+        {% endif %}
+
+        {% if block.settings.subheading != blank %}
+          <h3 class="ai-dual-image-text__subheading-{{ ai_gen_id }}">{{ block.settings.subheading }}</h3>
+        {% endif %}
+
+        {% if block.settings.description != blank %}
+          <div class="ai-dual-image-text__description-{{ ai_gen_id }}">{{ block.settings.description }}</div>
+        {% endif %}
+
+        {% if block.settings.button_text != blank %}
+          <a
+            href="{{ block.settings.button_link }}"
+            class="ai-dual-image-text__button-{{ ai_gen_id }}"
+          >
+            {{ block.settings.button_text }}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</dual-image-text-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class DualImageText{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.animationIntensity = parseFloat(this.dataset.animationIntensity) || 1;
+        this.animationSmoothness = parseFloat(this.dataset.animationSmoothness) || 0.3;
+        this.scrollSensitivity = parseFloat(this.dataset.scrollSensitivity) || 0.5;
+        this.overlapDirection = this.dataset.overlapDirection || 'inward';
+        this.animationType = this.dataset.animationType || 'overlap';
+        
+        this.squareImage = this.querySelector('[data-image="square"]');
+        this.portraitImage = this.querySelector('[data-image="portrait"]');
+        
+        this.scrollY = 0;
+        this.currentScrollY = 0;
+        this.isVisible = false;
+        this.animationId = null;
+        
+        this.initialSquareTransform = { x: 0, y: 0, rotation: 0, scale: 1 };
+        this.initialPortraitTransform = { x: 0, y: 0, rotation: 0, scale: 1 };
+        this.currentSquareTransform = { ...this.initialSquareTransform };
+        this.currentPortraitTransform = { ...this.initialPortraitTransform };}
+
+      connectedCallback() {
+        this.setupScrollAnimation();
+        this.startAnimationLoop();
+      }
+
+      setupScrollAnimation() {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            this.isVisible = entry.isIntersecting;
+            if (this.isVisible) {
+              this.bindScrollEvents();
+            } else {
+              this.unbindScrollEvents();
+              this.resetImagePositions();
+            }
+          });
+        }, {
+          threshold: 0.1,
+          rootMargin: '50px 0px'
+        });
+
+        observer.observe(this);
+      }
+
+      bindScrollEvents() {
+        window.addEventListener('scroll', this.handleScroll.bind(this), { passive: true });
+        window.addEventListener('wheel', this.handleWheel.bind(this), { passive: true });
+      }
+
+      unbindScrollEvents() {
+        window.removeEventListener('scroll', this.handleScroll.bind(this));
+        window.removeEventListener('wheel', this.handleWheel.bind(this));
+      }
+
+      handleScroll() {
+        this.currentScrollY = window.scrollY;
+      }
+
+      handleWheel(event) {
+        if (!this.isVisible) return;
+        
+        const delta = event.deltaY * this.scrollSensitivity;
+        this.updateImageTransforms(delta);
+      }
+
+      updateImageTransforms(scrollDelta) {
+        const intensity = this.animationIntensity;
+        const maxMovement = 60 * intensity;
+        const maxRotation = 8 * intensity;
+        const maxScale = 0.1 * intensity;
+
+        let squareMovement, portraitMovement;
+        
+        if (this.overlapDirection === 'inward') {
+          squareMovement = Math.min(Math.max(this.currentSquareTransform.x + (scrollDelta * 0.3), -maxMovement), maxMovement);
+          portraitMovement = Math.min(Math.max(this.currentPortraitTransform.x - (scrollDelta * 0.3), -maxMovement), maxMovement);
+        } else {
+          squareMovement = Math.min(Math.max(this.currentSquareTransform.x - (scrollDelta * 0.3), -maxMovement), maxMovement);
+          portraitMovement = Math.min(Math.max(this.currentPortraitTransform.x + (scrollDelta * 0.3), -maxMovement), maxMovement);
+        }
+
+        if (this.animationType === 'overlap') {
+          this.currentSquareTransform.x = squareMovement;
+          this.currentPortraitTransform.x = portraitMovement;
+        } else if (this.animationType === 'rotate') {
+          this.currentSquareTransform.rotation = Math.min(Math.max(this.currentSquareTransform.rotation + (scrollDelta * 0.1), -maxRotation), maxRotation);
+          this.currentPortraitTransform.rotation = Math.min(Math.max(this.currentPortraitTransform.rotation - (scrollDelta * 0.1), -maxRotation), maxRotation);
+        } else if (this.animationType === 'scale') {
+          this.currentSquareTransform.scale = Math.min(Math.max(1 + (scrollDelta * 0.001), 1 - maxScale), 1 + maxScale);
+          this.currentPortraitTransform.scale = Math.min(Math.max(1 - (scrollDelta * 0.001), 1 - maxScale), 1 + maxScale);
+        } else if (this.animationType === 'combined') {
+          this.currentSquareTransform.x = squareMovement;
+          this.currentPortraitTransform.x = portraitMovement;
+          this.currentSquareTransform.rotation = Math.min(Math.max(this.currentSquareTransform.rotation + (scrollDelta * 0.05), -maxRotation/2), maxRotation/2);
+          this.currentPortraitTransform.rotation = Math.min(Math.max(this.currentPortraitTransform.rotation - (scrollDelta * 0.05), -maxRotation/2), maxRotation/2);
+          this.currentSquareTransform.scale = Math.min(Math.max(1 + (scrollDelta * 0.0005), 1 - maxScale/2), 1 + maxScale/2);
+          this.currentPortraitTransform.scale = Math.min(Math.max(1 - (scrollDelta * 0.0005), 1 - maxScale/2), 1 + maxScale/2);
+        }
+      }
+
+      startAnimationLoop() {
+        const animate = () => {
+          if (this.isVisible && (this.squareImage && this.portraitImage)) {
+            this.applyTransforms();
+          }
+          this.animationId = requestAnimationFrame(animate);
+        };
+        animate();
+      }
+
+      applyTransforms() {
+        const squareTransform = `translate3d(${this.currentSquareTransform.x}px, ${this.currentSquareTransform.y}px, 0) 
+                                rotate(${this.currentSquareTransform.rotation}deg) 
+                                scale(${this.currentSquareTransform.scale})`;
+        
+        const portraitTransform = `translate3d(${this.currentPortraitTransform.x}px, ${this.currentPortraitTransform.y}px, 0) 
+                                  rotate(${this.currentPortraitTransform.rotation}deg) 
+                                  scale(${this.currentPortraitTransform.scale})`;
+
+        this.squareImage.style.transform = squareTransform;
+        this.portraitImage.style.transform = portraitTransform;
+      }
+
+      resetImagePositions() {
+        this.currentSquareTransform = { ...this.initialSquareTransform };
+        this.currentPortraitTransform = { ...this.initialPortraitTransform };
+        
+        if (this.squareImage && this.portraitImage) {
+          this.squareImage.style.transform = 'translate3d(0, 0, 0) rotate(0deg) scale(1)';
+          this.portraitImage.style.transform = 'translate3d(0, 0, 0) rotate(0deg) scale(1)';
+        }
+      }
+
+      disconnectedCallback() {
+        this.unbindScrollEvents();
+        if (this.animationId) {
+          cancelAnimationFrame(this.animationId);}
+      }
+    }
+
+    customElements.define('dual-image-text-{{ ai_gen_id }}', DualImageText{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Dual Image Text",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout & Size"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "min": 1200,
+      "max": 2000,
+      "step": 50,
+      "unit": "px",
+      "label": "Maximum width",
+      "default": 1600
+    },
+    {
+      "type": "range",
+      "id": "horizontal_padding",
+      "min": 20,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "Horizontal padding",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "content_gap",
+      "min": 40,
+      "max": 200,
+      "step": 10,
+      "unit": "px",
+      "label": "Content gap",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "section_padding_top",
+      "min": 0,
+      "max": 200,
+      "step": 10,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "section_padding_bottom",
+      "min": 0,
+      "max": 200,
+      "step": 10,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 80
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Images"
+    },
+    {
+      "type": "image_picker",
+      "id": "square_image",
+      "label": "Square image"
+    },
+    {
+      "type": "image_picker",
+      "id": "portrait_image",
+      "label": "Portrait image"
+    },
+    {
+      "type": "range",
+      "id": "image_container_height",
+      "min": 400,
+      "max": 800,
+      "step": 20,
+      "unit": "px",
+      "label": "Image container height",
+      "default": 600
+    },
+    {
+      "type": "range",
+      "id": "square_image_size",
+      "min": 200,
+      "max": 500,
+      "step": 10,
+      "unit": "px",
+      "label": "Square image size",
+      "default": 350
+    },
+    {
+      "type": "range",
+      "id": "portrait_image_width",
+      "min": 180,
+      "max": 400,
+      "step": 10,
+      "unit": "px",
+      "label": "Portrait image width",
+      "default": 280
+    },
+    {
+      "type": "range",
+      "id": "portrait_image_height",
+      "min": 300,
+      "max": 600,
+      "step": 10,
+      "unit": "px",
+      "label": "Portrait image height",
+      "default": 420
+    },
+    {
+      "type": "range",
+      "id": "image_border_radius",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "unit": "px",
+      "label": "Image border radius",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "Image positioning"
+    },
+    {
+      "type": "range",
+      "id": "square_offset_top",
+      "min": 0,
+      "max": 200,
+      "step": 5,
+      "unit": "px",
+      "label": "Square image top offset",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "square_offset_left",
+      "min": 0,
+      "max": 200,
+      "step": 5,
+      "unit": "px",
+      "label": "Square image left offset",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "portrait_offset_top",
+      "min": 0,
+      "max": 200,
+      "step": 5,
+      "unit": "px",
+      "label": "Portrait image top offset",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "portrait_offset_right",
+      "min": 0,
+      "max": 200,
+      "step": 5,
+      "unit": "px",
+      "label": "Portrait image right offset",
+      "default": 80
+    },
+    {
+      "type": "select",
+      "id": "square_z_index",
+      "label": "Square image layer",
+      "options": [
+        {
+          "value": "1",
+          "label": "Behind"
+        },
+        {
+          "value": "2",
+          "label": "Front"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "portrait_z_index",
+      "label": "Portrait image layer",
+      "options": [
+        {
+          "value": "1",
+          "label": "Behind"
+        },
+        {
+          "value": "2",
+          "label": "Front"
+        }
+      ],
+      "default": "1"
+    },
+    {
+      "type": "header",
+      "content": "Image shadows"
+    },
+    {
+      "type": "range",
+      "id": "shadow_blur",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "unit": "px",
+      "label": "Shadow blur",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "shadow_spread",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Shadow spread",
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "shadow_opacity",
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "label": "Shadow opacity",
+      "default": 0.2
+    },
+    {
+      "type": "header",
+      "content": "Animation controls"
+    },
+    {
+      "type": "select",
+      "id": "animation_type",
+      "label": "Animation type",
+      "options": [
+        {
+          "value": "overlap",
+          "label": "Overlap movement"
+        },
+        {
+          "value": "rotate",
+          "label": "Rotation"
+        },
+        {
+          "value": "scale",
+          "label": "Scale"
+        },
+        {
+          "value": "combined",
+          "label": "Combined effects"
+        }
+      ],
+      "default": "overlap"
+    },
+    {
+      "type": "select",
+      "id": "overlap_direction",
+      "label": "Movement direction",
+      "options": [
+        {
+          "value": "inward",
+          "label": "Inward overlap"
+        },
+        {
+          "value": "outward",
+          "label": "Outward separation"
+        }
+      ],
+      "default": "inward"
+    },
+    {
+      "type": "range",
+      "id": "animation_intensity",
+      "min": 0.1,
+      "max": 3,
+      "step": 0.1,
+      "label": "Animation intensity",
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "animation_smoothness",
+      "min": 0.1,
+      "max": 1,
+      "step": 0.1,
+      "label": "Animation smoothness",
+      "default": 0.3
+    },
+    {
+      "type": "range",
+      "id": "scroll_sensitivity",
+      "min": 0.1,
+      "max": 2,
+      "step": 0.1,
+      "label": "Scroll sensitivity",
+      "default": 0.5
+    },
+    {
+      "type": "header",
+      "content": "Text content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Discover Our Premium Collection"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Crafted with Excellence"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Experience the perfect blend of style, quality, and innovation with our carefully curated collection. Each piece is designed to elevate your lifestyle and express your unique personality.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Explore Collection"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Text styling"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "text_padding",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "Text padding",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "min": 24,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "label": "Heading size",
+      "default": 48
+    },
+    {
+      "type": "select",
+      "id": "heading_weight",
+      "label": "Heading weight",
+      "options": [
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Normal"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semi-bold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ],
+      "default": "600"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "heading_margin",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Heading margin",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "subheading_size",
+      "min": 16,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Subheading size",
+      "default": 24
+    },
+    {
+      "type": "select",
+      "id": "subheading_weight",
+      "label": "Subheading weight",
+      "options": [
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Normal"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semi-bold"
+        }
+      ],
+      "default": "400"
+    },
+    {
+      "type": "color",
+      "id": "subheading_color",
+      "label": "Subheading color",
+      "default": "#666666"
+    },
+    {
+      "type": "range",
+      "id": "subheading_margin",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Subheading margin",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "description_size",
+      "min": 14,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "label": "Description size",
+      "default": 18
+    },
+    {
+      "type": "color",
+      "id": "description_color",
+      "label": "Description color",
+      "default": "#333333"
+    },
+    {
+      "type": "range",
+      "id": "description_margin",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Description margin",
+      "default": 32
+    },
+    {
+      "type": "header",
+      "content": "Button styling"
+    },
+    {
+      "type": "range",
+      "id": "button_font_size",
+      "min": 12,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "label": "Button font size",
+      "default": 18
+    },
+    {
+      "type": "select",
+      "id": "button_font_weight",
+      "label": "Button font weight",
+      "options": [
+        {
+          "value": "400",
+          "label": "Normal"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semi-bold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ],
+      "default": "500"
+    },
+    {
+      "type": "select",
+      "id": "button_text_transform",
+      "label": "Button text transform",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        },
+        {
+          "value": "lowercase",
+          "label": "Lowercase"
+        },
+        {
+          "value": "capitalize",
+          "label": "Capitalize"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "button_padding_vertical",
+      "min": 8,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Button vertical padding",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "button_padding_horizontal",
+      "min": 16,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Button horizontal padding",
+      "default": 32
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Button background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "button_border_width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "label": "Button border width",
+      "default": 0
+    },
+    {
+      "type": "color",
+      "id": "button_border_color",
+      "label": "Button border color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "unit": "px",
+      "label": "Button border radius",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Button hover effects"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_bg_color",
+      "label": "Hover background",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_text_color",
+      "label": "Hover text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_border_color",
+      "label": "Hover border color",
+      "default": "#333333"
+    },
+    {
+      "type": "range",
+      "id": "button_hover_lift",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "label": "Hover lift effect",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "button_hover_shadow",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Hover shadow",
+      "default": 8
+    }
+  ],
+  "presets": [
+    {
+      "name": "Dual Image Text"
+    }
+  ],
+  "tag": null
+}
+{% endschema %}
