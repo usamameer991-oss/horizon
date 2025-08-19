@@ -129,14 +129,20 @@
       {% if block_settings.padding-block-end > 0 %}--zoom-out-padding-block-end: min(var(--padding-xs), {{ block_settings.padding-block-end | times: 0.7}}px);{% endif %}
     "
   >
-    {%- comment -%}
-      👉 Variant chips (AVAILABLE variants only)
-      • Desktop: show on hover
-      • Mobile: always visible
-      • Auto-detects “size”; override with option_name: 'Shoe size' if needed
-    {%- endcomment -%}
-    {% render 'collection-variant-chips', product: product, option_name: 'Shoe size', desktop_behaviour: 'hover' %}
-
+    {% if settings.show_variant_chips %}
+      {%- comment -%}
+        👉 Variant chips (AVAILABLE variants only)
+        • Desktop: show on hover
+        • Mobile: always visible
+        • Auto-detects “size”; override with option_name if needed
+      {%- endcomment -%}
+      {% render 'collection-variant-chips',
+        product: product,
+        settings: section.settings,
+        owner_id: section.id,
+        desktop_behaviour: 'hover'
+      %}
+    {% endif %}
 
     {{ children }}
   </div>
